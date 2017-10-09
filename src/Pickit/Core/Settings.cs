@@ -13,6 +13,8 @@ namespace Pickit
             SixSocket = true;
             SixLink = true;
             RGB = true;
+            AllDivs = true;
+            AllCurrency = true;
         }
 
         [Menu("Pickup Key")]
@@ -27,6 +29,10 @@ namespace Pickit
         public ToggleNode SixLink { get; set; }
         [Menu("RGB")]
         public ToggleNode RGB { get; set; }
+        [Menu("All Divination Cards")]
+        public ToggleNode AllDivs { get; set; }
+        [Menu("All Currency")]
+        public ToggleNode AllCurrency { get; set; }
 
     }
 }

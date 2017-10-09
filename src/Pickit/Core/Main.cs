@@ -124,6 +124,10 @@ namespace Pickit
                     return true;
                 if (Settings.RGB && ItemEntity.GetComponent<Sockets>().IsRGB)
                     return true;
+                if (Settings.AllDivs && GameController.Files.BaseItemTypes.Translate(ItemEntity.Path).ClassName == "DivinationCard")
+                    return true;
+                if (Settings.AllCurrency && GameController.Files.BaseItemTypes.Translate(ItemEntity.Path).ClassName == "StackableCurrency")
+                    return true;
             }
             catch { }
 
