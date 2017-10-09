@@ -1,0 +1,12 @@
+Owner: DetectiveSquirrel
+Name: Pickit
+Repository
+
+Ignore:
+src
+.gitignore
+README.md
+LICENSE
+config.ini
+.config
+.pdb

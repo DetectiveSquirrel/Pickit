@@ -1,0 +1,8 @@
+# Names are ItemBaseName
+
+#####################
+# Unique Item Bases #
+#####################
+
+# Rings
+Unset Ring

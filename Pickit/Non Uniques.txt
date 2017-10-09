@@ -1,0 +1,69 @@
+# Names are ItemBaseName
+
+############
+# Currency #
+############
+
+# Full #
+Cartographer's Chisel
+Glassblower's Bauble
+Gemcutter's Prism
+Jeweller's Orb
+Chromatic Orb
+Orb of Fusing
+Orb of Transmutation
+Orb of Chance
+Orb of Alchemy
+Regal Orb
+Orb of Augmentation
+Exalted Orb
+Orb of Alteration
+Chaos Orb
+Blessed Orb
+Divine Orb
+Orb of Scouring
+Mirror of Kalandra
+Orb of Regret
+Vaal Orb
+Albino Rhoa Feather
+Ancient Orb
+Engineer's Orb
+Harbinger's Orb
+Orb of Annulment
+Orb of Binding
+Orb of Horizons
+Stacked Deck
+Perandus Coin
+Blacksmith's Whetstone
+Armourer's Scrap
+Harbinger's Orb
+Scroll of Wisdom
+Portal Scroll
+
+# Sextants
+Apprentice Cartographer's Sextant
+Journeyman Cartographer's Sextant
+Master Cartographer's Sextant
+
+# Shards #
+Ancient Shard
+Annulment Shard
+Chaos Shard
+Binding Shard
+Engineer's Shard
+Exalted Shard
+Horizon Shard
+Mirror Shard
+Regal Shard
+Harbinger's Shard
+Alchemy Shard
+
+# Splinters
+Splinter of Esh
+Splinter of Xoph
+Splinter of Chayula
+Splinter of Tul
+Splinter of Uul-Netol
+
+#Divination Cards
+The Gambler
