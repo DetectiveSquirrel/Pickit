@@ -15,6 +15,7 @@ namespace Pickit
             RGB = true;
             AllDivs = true;
             AllCurrency = true;
+            AllUniques = true;
         }
 
         [Menu("Pickup Key")]
@@ -33,6 +34,8 @@ namespace Pickit
         public ToggleNode AllDivs { get; set; }
         [Menu("All Currency")]
         public ToggleNode AllCurrency { get; set; }
+        [Menu("All Uniques")]
+        public ToggleNode AllUniques { get; set; }
 
     }
 }

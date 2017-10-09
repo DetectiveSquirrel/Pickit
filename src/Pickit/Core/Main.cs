@@ -128,6 +128,8 @@ namespace Pickit
                     return true;
                 if (Settings.AllCurrency && GameController.Files.BaseItemTypes.Translate(ItemEntity.Path).ClassName == "StackableCurrency")
                     return true;
+                if (Settings.AllUniques && ItemEntity.GetComponent<Mods>().ItemRarity == ItemRarity.Unique)
+                    return true;
             }
             catch { }
 
