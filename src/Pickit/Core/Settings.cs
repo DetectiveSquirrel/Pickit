@@ -9,7 +9,9 @@ namespace Pickit
         public Settings()
         {
             PickUpKey = Keys.F1;
-            PickupRange = new RangeNode<int>(500, 1, 1000);
+            PickupRange = new RangeNode<int>(600, 1, 1000);
+            ExtraDelay = new RangeNode<int>(0, 0, 200);
+            PickupTimerDelay = new RangeNode<int>(124, 1, 200);
             SixSocket = true;
             SixLink = true;
             RGB = true;
@@ -23,6 +25,10 @@ namespace Pickit
 
         [Menu("Pickup Radius")]
         public RangeNode<int> PickupRange { get; set; }
+        [Menu("Extra Click Delay")]
+        public RangeNode<int> ExtraDelay { get; set; }
+        [Menu("Pickup Delay")]
+        public RangeNode<int> PickupTimerDelay { get; set; }
 
         [Menu("6 Sockets")]
         public ToggleNode SixSocket { get; set; }

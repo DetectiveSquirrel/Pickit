@@ -34,6 +34,8 @@ namespace Pickit
 
         private HashSet<string> NonUniques;
         private HashSet<string> Uniques;
+        private Vector2 _clickWindowOffset;
+        private readonly int PIXEL_BORDER = 3;
 
         public Main()
         {
@@ -57,7 +59,7 @@ namespace Pickit
                     if (Am_I_Working)
                         return;
                     Am_I_Working = true;
-                    PickItUp();
+                    NewPickUp();
                 }
             }
             catch { }
@@ -76,22 +78,33 @@ namespace Pickit
             return hashSet;
         }
 
-        private int GetEntityDistance(EntityWrapper ItemEntity)
+        private int GetEntityDistance(EntityWrapper entity)
         {
             var PlayerPosition = GameController.Player.GetComponent<Positioned>();
-            var ItemPosition = ItemEntity.GetComponent<Positioned>();
-            var DistanceToEntity = Math.Sqrt(Math.Pow(PlayerPosition.X - ItemPosition.X, 2) +
-                                             Math.Pow(PlayerPosition.Y - ItemPosition.Y, 2));
+            var MonsterPosition = entity.GetComponent<Positioned>();
+            var distanceToEntity = Math.Sqrt(Math.Pow(PlayerPosition.X - MonsterPosition.X, 2) +
+                                             Math.Pow(PlayerPosition.Y - MonsterPosition.Y, 2));
 
-            return (int)DistanceToEntity;
+            return (int)distanceToEntity;
+        }
+        private int GetEntityDistance(Entity entity)
+        {
+            var PlayerPosition = GameController.Player.GetComponent<Positioned>();
+            var MonsterPosition = entity.GetComponent<Positioned>();
+            var distanceToEntity = Math.Sqrt(Math.Pow(PlayerPosition.X - MonsterPosition.X, 2) +
+                                             Math.Pow(PlayerPosition.Y - MonsterPosition.Y, 2));
+
+            return (int)distanceToEntity;
         }
 
-        public bool InListNonUnique(Entity ItemEntity)
+        public bool InListNonUnique(ItemsOnGroundLabelElement ItemEntity)
         {
             try
             {
-                var ItemEntityName = GameController.Files.BaseItemTypes.Translate(ItemEntity.Path).BaseName;
-                ItemRarity Rarity = ItemEntity.GetComponent<Mods>().ItemRarity;
+                var Item = ItemEntity.ItemOnGround.GetComponent<WorldItem>().ItemEntity;
+
+                var ItemEntityName = GameController.Files.BaseItemTypes.Translate(Item.Path).BaseName;
+                ItemRarity Rarity = Item.GetComponent<Mods>().ItemRarity;
                 if (NonUniques.Contains(ItemEntityName) && Rarity != ItemRarity.Unique)
                     return true;
             }
@@ -100,12 +113,14 @@ namespace Pickit
             return false;
         }
 
-        public bool InListUnique(Entity ItemEntity)
+        public bool InListUnique(ItemsOnGroundLabelElement ItemEntity)
         {
             try
             {
-                var ItemEntityName = GameController.Files.BaseItemTypes.Translate(ItemEntity.Path).BaseName;
-                ItemRarity Rarity = ItemEntity.GetComponent<Mods>().ItemRarity;
+                var Item = ItemEntity.ItemOnGround.GetComponent<WorldItem>().ItemEntity;
+
+                var ItemEntityName = GameController.Files.BaseItemTypes.Translate(Item.Path).BaseName;
+                ItemRarity Rarity = Item.GetComponent<Mods>().ItemRarity;
                 if (Uniques.Contains(ItemEntityName) && Rarity == ItemRarity.Unique)
                     return true;
             }
@@ -114,21 +129,23 @@ namespace Pickit
             return false;
         }
 
-        public bool MiscChecks(Entity ItemEntity)
+        public bool MiscChecks(ItemsOnGroundLabelElement ItemEntity)
         {
             try
             {
-                if (Settings.SixSocket && ItemEntity.GetComponent<Sockets>().NumberOfSockets == 6)
+                var Item = ItemEntity.ItemOnGround.GetComponent<WorldItem>().ItemEntity;
+
+                if (Settings.SixSocket && Item.GetComponent<Sockets>().NumberOfSockets == 6)
                     return true;
-                if (Settings.SixLink && ItemEntity.GetComponent<Sockets>().LargestLinkSize == 6)
+                if (Settings.SixLink && Item.GetComponent<Sockets>().LargestLinkSize == 6)
                     return true;
-                if (Settings.RGB && ItemEntity.GetComponent<Sockets>().IsRGB)
+                if (Settings.RGB && Item.GetComponent<Sockets>().IsRGB)
                     return true;
-                if (Settings.AllDivs && GameController.Files.BaseItemTypes.Translate(ItemEntity.Path).ClassName == "DivinationCard")
+                if (Settings.AllDivs && GameController.Files.BaseItemTypes.Translate(Item.Path).ClassName == "DivinationCard")
                     return true;
-                if (Settings.AllCurrency && GameController.Files.BaseItemTypes.Translate(ItemEntity.Path).ClassName == "StackableCurrency")
+                if (Settings.AllCurrency && GameController.Files.BaseItemTypes.Translate(Item.Path).ClassName == "StackableCurrency")
                     return true;
-                if (Settings.AllUniques && ItemEntity.GetComponent<Mods>().ItemRarity == ItemRarity.Unique)
+                if (Settings.AllUniques && Item.GetComponent<Mods>().ItemRarity == ItemRarity.Unique)
                     return true;
             }
             catch { }
@@ -145,76 +162,52 @@ namespace Pickit
         {
             entities.Remove(entityWrapper);
         }
-
-        private void PickItUp()
+        private void NewPickUp()
         {
-            if (Pick_Up_Timer.ElapsedMilliseconds < 100)
+            if (Pick_Up_Timer.ElapsedMilliseconds < Settings.PickupTimerDelay)
             {
                 Am_I_Working = false;
                 return;
             }
             Pick_Up_Timer.Restart();
-            SortedByDistDropItems.Clear();
+
+            var currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabels
+                .Where(x => x.ItemOnGround.Path.ToLower().Contains("worlditem") && x.IsVisible && (x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds == 0))
+                .Select(x => new Tuple<int, ItemsOnGroundLabelElement>(GetEntityDistance(x.ItemOnGround), x))
+                .OrderBy(x => x.Item1)
+                .ToList();
 
 
-            foreach (var ItemEntity in entities)
+            var pickUpThisItem = (from x in currentLabels
+                                  where (InListNonUnique(x.Item2) || InListUnique(x.Item2) || MiscChecks(x.Item2))
+                                  && x.Item1 < Settings.PickupRange select x).FirstOrDefault();
+
+            if (pickUpThisItem != null)
             {
-                Entity Item = null;
-                if (ItemEntity.Path.ToLower().Contains("worlditem"))
-                    Item = ItemEntity.GetComponent<WorldItem>().ItemEntity;
-
-
-
-                if (Item == null) continue;
-                var Skip = InListNonUnique(Item) || InListUnique(Item) || MiscChecks(Item);
-                if (!Skip) continue;
-                var Distance = GetEntityDistance(ItemEntity);
-                var TupleList = new Tuple<int, long, EntityWrapper>(Distance, ItemEntity.Address, ItemEntity);
-                SortedByDistDropItems.Add(TupleList);
+                if (pickUpThisItem.Item1 >= Settings.PickupRange)
+                {
+                    Am_I_Working = false;
+                    return;
+                }
+                var vect = pickUpThisItem.Item2.Label.GetClientRect().Center;
+                var vectWindow = GameController.Window.GetWindowRectangle();
+                if (vect.Y + PIXEL_BORDER > vectWindow.Bottom || vect.Y - PIXEL_BORDER < vectWindow.Top)
+                {
+                    Am_I_Working = false;
+                    return;
+                }
+                if (vect.X + PIXEL_BORDER > vectWindow.Right || vect.X - PIXEL_BORDER < vectWindow.Left)
+                {
+                    Am_I_Working = false;
+                    return;
+                }
+                _clickWindowOffset = GameController.Window.GetWindowRectangle().TopLeft;
+                Mouse.SetCursorPosAndLeftClick(vect + _clickWindowOffset, Settings.ExtraDelay);
+                //Return cursor to center screen
+                // I dont actually like this idea, it annoys eyes
+                //var centerScreen = GameController.Window.GetWindowRectangle().Center;
+                //Mouse.SetCursorPos(centerScreen);
             }
-
-
-            var OrderedByDistance = SortedByDistDropItems.OrderBy(x => x.Item1).ToList();
-
-            var _currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabels
-                .GroupBy(GroundLabel => GroundLabel.ItemOnGround.Address)
-                .ToDictionary(y => y.Key, y => y.First());
-
-            if (OrderedByDistance.Count == 0)
-            {
-                Am_I_Working = false;
-                return;
-            }
-
-            foreach (var tuple in OrderedByDistance)
-                if (_currentLabels.TryGetValue(tuple.Item2, out ItemsOnGroundLabelElement entityLabel))
-                    if (entityLabel.IsVisible && (entityLabel.CanPickUp || entityLabel.MaxTimeForPickUp.TotalSeconds == 0))
-                    {
-                        var rect = entityLabel.Label.GetClientRect();
-                        var vect = new Vector2(rect.Center.X, rect.Center.Y);
-                        if (tuple.Item1 >= Settings.PickupRange.Value)
-                        {
-                            Am_I_Working = false;
-                            return;
-                        }
-                        Thread.Sleep(5);
-                        var vectWindow = GameController.Window.GetWindowRectangle();
-                        if (vect.Y > vectWindow.Bottom || vect.Y < vectWindow.Top)
-                        {
-                            Am_I_Working = false;
-                            return;
-                        }
-                        if (vect.X > vectWindow.Right || vect.X < vectWindow.Left)
-                        {
-                            Am_I_Working = false;
-                            return;
-                        }
-
-                        SetCursorToEntityAndClick(vect);
-                        break;
-                    }
-
-
             Am_I_Working = false;
         }
 

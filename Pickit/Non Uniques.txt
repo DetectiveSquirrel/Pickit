@@ -37,8 +37,6 @@ Perandus Coin
 Blacksmith's Whetstone
 Armourer's Scrap
 Harbinger's Orb
-Scroll of Wisdom
-Portal Scroll
 
 # Sextants
 Apprentice Cartographer's Sextant
@@ -67,3 +65,4 @@ Splinter of Uul-Netol
 
 #Divination Cards
 The Gambler
+Chaos Disposition
