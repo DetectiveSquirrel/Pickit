@@ -18,6 +18,9 @@ namespace Pickit
             AllDivs = true;
             AllCurrency = true;
             AllUniques = true;
+            Maps = true;
+            UniqueMap = true;
+            MapTier = new RangeNode<int>(1, 1, 16);
         }
 
         [Menu("Pickup Key")]
@@ -42,6 +45,12 @@ namespace Pickit
         public ToggleNode AllCurrency { get; set; }
         [Menu("All Uniques")]
         public ToggleNode AllUniques { get; set; }
+        [Menu("Maps", 1)]
+        public ToggleNode Maps { get; set; }
+        [Menu("Lowest Tier To Pick", 11, 1)]
+        public RangeNode<int> MapTier { get; set; }
+        [Menu("All Uniques (Override Min Map Tier)", 12, 1)]
+        public ToggleNode UniqueMap { get; set; }
 
     }
 }
