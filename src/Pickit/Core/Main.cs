@@ -153,6 +153,8 @@ namespace Pickit
                     return true;
                 if (Settings.Maps && Settings.UniqueMap && Item.GetComponent<PoeHUD.Poe.Components.Map>().Tier >= 1 && Item.GetComponent<Mods>().ItemRarity == ItemRarity.Unique)
                     return true;
+                if (Settings.QuestItems && GameController.Files.BaseItemTypes.Translate(Item.Path).ClassName == "QuestItem")
+                    return true;
             }
             catch { }
 
