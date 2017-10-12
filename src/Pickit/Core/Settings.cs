@@ -20,6 +20,7 @@ namespace Pickit
             AllUniques = true;
             Maps = true;
             UniqueMap = true;
+            MapFragments = true;
             MapTier = new RangeNode<int>(1, 1, 16);
             QuestItems = true;
             Gems = true;
@@ -54,6 +55,8 @@ namespace Pickit
         public RangeNode<int> MapTier { get; set; }
         [Menu("All Unique Maps", 12, 1)]
         public ToggleNode UniqueMap { get; set; }
+        [Menu("Fragments", 13, 1)]
+        public ToggleNode MapFragments { get; set; }
         [Menu("Gems", 2)]
         public ToggleNode Gems { get; set; }
         [Menu("Lowest Gem Quality", 22, 2)]
