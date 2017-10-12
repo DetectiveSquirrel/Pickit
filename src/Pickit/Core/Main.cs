@@ -155,6 +155,8 @@ namespace Pickit
                     return true;
                 if (Settings.QuestItems && GameController.Files.BaseItemTypes.Translate(Item.Path).ClassName == "QuestItem")
                     return true;
+                if (Settings.Gems && Item.GetComponent<Quality>().ItemQuality >= Settings.GemQuality.Value && GameController.Files.BaseItemTypes.Translate(Item.Path).ClassName.Contains("Skill Gem"))
+                    return true;
             }
             catch { }
 

@@ -22,6 +22,8 @@ namespace Pickit
             UniqueMap = true;
             MapTier = new RangeNode<int>(1, 1, 16);
             QuestItems = true;
+            Gems = true;
+            GemQuality = new RangeNode<int>(1, 0, 20);
         }
 
         [Menu("Pickup Key")]
@@ -48,10 +50,14 @@ namespace Pickit
         public ToggleNode AllUniques { get; set; }
         [Menu("Maps", 1)]
         public ToggleNode Maps { get; set; }
-        [Menu("Lowest Tier To Pick", 11, 1)]
+        [Menu("Lowest Tier", 11, 1)]
         public RangeNode<int> MapTier { get; set; }
-        [Menu("All Uniques (Override Min Map Tier)", 12, 1)]
+        [Menu("All Unique Maps", 12, 1)]
         public ToggleNode UniqueMap { get; set; }
+        [Menu("Gems", 2)]
+        public ToggleNode Gems { get; set; }
+        [Menu("Lowest Gem Quality", 22, 2)]
+        public RangeNode<int> GemQuality { get; set; }
         [Menu("Quest Items")]
         public ToggleNode QuestItems { get; set; }
 
