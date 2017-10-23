@@ -1,6 +1,6 @@
 ﻿#region Header
 /*
- * Idea from Qvin's auto pickup
+ * Idea/Code from Qvin's auto pickup
  * Reworked into a more configurable version
 */
 #endregion
@@ -19,8 +19,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Windows.Forms;
 using Utilities;
 
 namespace Pickit
@@ -192,7 +190,8 @@ namespace Pickit
 
             var pickUpThisItem = (from x in currentLabels
                                   where (InListNonUnique(x.Item2) || InListUnique(x.Item2) || MiscChecks(x.Item2))
-                                  && x.Item1 < Settings.PickupRange select x).FirstOrDefault();
+                                  && x.Item1 < Settings.PickupRange
+                                  select x).FirstOrDefault();
 
             if (pickUpThisItem != null)
             {
@@ -220,7 +219,59 @@ namespace Pickit
                 //var centerScreen = GameController.Window.GetWindowRectangle().Center;
                 //Mouse.SetCursorPos(centerScreen);
             }
+            else if(Settings.GroundChests)
+            {
+                ClickOnChests();
+            }
             Am_I_Working = false;
+        }
+
+        // Copy-Paste - Qvin0000's version
+        private void ClickOnChests()
+        {
+            var sortedByDistChest = new List<Tuple<int, long, EntityWrapper>>();
+
+            foreach (var entity in entities)
+            {
+                if (entity.Path.ToLower().Contains("chests") && entity.IsAlive && entity.IsHostile)
+                {
+                    if (!entity.HasComponent<Chest>()) continue;
+                    var ch = entity.GetComponent<Chest>();
+                    if (ch.IsStrongbox) continue;
+                    if (ch.IsOpened) continue;
+                    var d = GetEntityDistance(entity);
+
+                    var t = new Tuple<int, long, EntityWrapper>(d, entity.Address, entity);
+                    if (sortedByDistChest.Any(x => x.Item2 == entity.Address)) continue;
+
+                    sortedByDistChest.Add(t);
+                }
+            }
+
+            var tempList = sortedByDistChest.OrderBy(x => x.Item1).ToList();
+            if (tempList.Count <= 0) return;
+            if (tempList[0].Item1 >= Settings.ChestRange) return;
+            SetCursorToEntityAndClick(tempList[0].Item3);
+            var centerScreen = GameController.Window.GetWindowRectangle().Center;
+            Mouse.SetCursorPos(centerScreen);
+
+            Am_I_Working = false;
+
+        }
+        //Copy-Paste - Sithylis_QoL
+        private void SetCursorToEntityAndClick(EntityWrapper entity)
+        {
+            var camera = GameController.Game.IngameState.Camera;
+            var chestScreenCoords =
+                camera.WorldToScreen(entity.Pos.Translate(0, 0, 0), entity);
+            if (chestScreenCoords != new Vector2())
+            {
+                var pos = Mouse.GetCursorPosition();
+                var iconRect1 = new Vector2(chestScreenCoords.X, chestScreenCoords.Y);
+                Mouse.SetCursorPosAndLeftClick(iconRect1, 100);
+                Mouse.SetCursorPos(pos.X, pos.Y);
+
+            }
         }
 
         private void SetCursorToEntityAndClick(Vector2 rect)

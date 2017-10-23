@@ -70,7 +70,9 @@
     <Compile Include="Core\Settings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\Keyboard.cs" />
+    <Compile Include="Utilities\Misc.cs" />
     <Compile Include="Utilities\Mouse.cs" />
+    <Compile Include="Utilities\Player.cs" />
     <Compile Include="Utilities\WinApi.cs" />
   </ItemGroup>
   <ItemGroup>

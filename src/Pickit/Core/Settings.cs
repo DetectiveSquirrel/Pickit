@@ -10,6 +10,7 @@ namespace Pickit
         {
             PickUpKey = Keys.F1;
             PickupRange = new RangeNode<int>(600, 1, 1000);
+            ChestRange = new RangeNode<int>(500, 1, 1000);
             ExtraDelay = new RangeNode<int>(0, 0, 200);
             PickupTimerDelay = new RangeNode<int>(124, 1, 200);
             SixSocket = true;
@@ -25,6 +26,7 @@ namespace Pickit
             QuestItems = true;
             Gems = true;
             GemQuality = new RangeNode<int>(1, 0, 20);
+            GroundChests = false;
         }
 
         [Menu("Pickup Key")]
@@ -32,6 +34,8 @@ namespace Pickit
 
         [Menu("Pickup Radius")]
         public RangeNode<int> PickupRange { get; set; }
+        [Menu("Chest Radius")]
+        public RangeNode<int> ChestRange { get; set; }
         [Menu("Extra Click Delay")]
         public RangeNode<int> ExtraDelay { get; set; }
         [Menu("Pickup Delay")]
@@ -63,6 +67,8 @@ namespace Pickit
         public RangeNode<int> GemQuality { get; set; }
         [Menu("Quest Items")]
         public ToggleNode QuestItems { get; set; }
+        [Menu("Chests")]
+        public ToggleNode GroundChests { get; set; }
 
     }
 }
