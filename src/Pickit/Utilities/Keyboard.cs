@@ -36,10 +36,10 @@ namespace Utilities
             keybd_event((byte)key, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0); //0x7F
         }
 
-        public static void KeyPress(Keys key)
+        public static void KeyPress(Keys key, int delay = ACTION_DELAY)
         {
             KeyDown(key);
-            Thread.Sleep(ACTION_DELAY);
+            Thread.Sleep(delay);
             KeyUp(key);
         }
 

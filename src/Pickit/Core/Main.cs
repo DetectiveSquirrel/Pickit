@@ -25,6 +25,7 @@ namespace Pickit
 {
     public class Main : BaseSettingsPlugin<Settings>
     {
+        private readonly Stopwatch ShowHideLabelTimer = Stopwatch.StartNew();
         private readonly Stopwatch Pick_Up_Timer = Stopwatch.StartNew();
         private readonly List<Tuple<int, long, EntityWrapper>> SortedByDistDropItems = new List<Tuple<int, long, EntityWrapper>>();
         private readonly List<EntityWrapper> entities = new List<EntityWrapper>();
@@ -132,6 +133,27 @@ namespace Pickit
             try
             {
                 var Item = ItemEntity.ItemOnGround.GetComponent<WorldItem>().ItemEntity;
+                var ClassName = GameController.Files.BaseItemTypes.Translate(Item.Path).ClassName;
+                
+                if (Settings.Rares)
+                {
+                    if (Settings.RareJewels && ClassName == "Jewel")
+                        return true;
+                    if (Settings.RareRings && ClassName == "Ring" && Item.GetComponent<Mods>().ItemLevel >= Settings.RareRingsilvl)
+                        return true;
+                    if (Settings.RareAmulets && ClassName == "Amulet" && Item.GetComponent<Mods>().ItemLevel >= Settings.RareAmuletsilvl)
+                        return true;
+                    if (Settings.RareBelts && ClassName == "Belt" && Item.GetComponent<Mods>().ItemLevel >= Settings.RareBeltsilvl)
+                        return true;
+                    if (Settings.RareGloves && ClassName == "Gloves" && Item.GetComponent<Mods>().ItemLevel >= Settings.RareGlovesilvl)
+                        return true;
+                    if (Settings.RareBoots && ClassName == "Boots" && Item.GetComponent<Mods>().ItemLevel >= Settings.RareBootsilvl)
+                        return true;
+                    if (Settings.RareHelmets && ClassName == "Helmet" && Item.GetComponent<Mods>().ItemLevel >= Settings.RareHelmetsilvl)
+                        return true;
+                    if (Settings.RareArmour && ClassName == "Body Armour" && Item.GetComponent<Mods>().ItemLevel >= Settings.RareArmourilvl)
+                        return true;
+                }
 
                 if (Settings.SixSocket && Item.GetComponent<Sockets>().NumberOfSockets == 6)
                     return true;
@@ -139,9 +161,9 @@ namespace Pickit
                     return true;
                 if (Settings.RGB && Item.GetComponent<Sockets>().IsRGB)
                     return true;
-                if (Settings.AllDivs && GameController.Files.BaseItemTypes.Translate(Item.Path).ClassName == "DivinationCard")
+                if (Settings.AllDivs && ClassName == "DivinationCard")
                     return true;
-                if (Settings.AllCurrency && GameController.Files.BaseItemTypes.Translate(Item.Path).ClassName == "StackableCurrency")
+                if (Settings.AllCurrency && ClassName == "StackableCurrency")
                     return true;
                 if (Settings.AllUniques && Item.GetComponent<Mods>().ItemRarity == ItemRarity.Unique)
                     return true;
@@ -149,13 +171,13 @@ namespace Pickit
                     return true;
                 if (Settings.Maps && Item.GetComponent<PoeHUD.Poe.Components.Map>().Tier >= Settings.MapTier.Value)
                     return true;
-                if (Settings.Maps && Settings.MapFragments && GameController.Files.BaseItemTypes.Translate(Item.Path).ClassName == "MapFragment")
+                if (Settings.Maps && Settings.MapFragments && ClassName == "MapFragment")
                     return true;
                 if (Settings.Maps && Settings.UniqueMap && Item.GetComponent<PoeHUD.Poe.Components.Map>().Tier >= 1 && Item.GetComponent<Mods>().ItemRarity == ItemRarity.Unique)
                     return true;
-                if (Settings.QuestItems && GameController.Files.BaseItemTypes.Translate(Item.Path).ClassName == "QuestItem")
+                if (Settings.QuestItems && ClassName == "QuestItem")
                     return true;
-                if (Settings.Gems && Item.GetComponent<Quality>().ItemQuality >= Settings.GemQuality.Value && GameController.Files.BaseItemTypes.Translate(Item.Path).ClassName.Contains("Skill Gem"))
+                if (Settings.Gems && Item.GetComponent<Quality>().ItemQuality >= Settings.GemQuality.Value && ClassName.Contains("Skill Gem"))
                     return true;
             }
             catch { }
@@ -174,6 +196,13 @@ namespace Pickit
         }
         private void NewPickUp()
         {
+            if (Settings.ShowHideToggle && ShowHideLabelTimer.ElapsedMilliseconds > 2000)
+            {
+                Keyboard.KeyPress(Settings.ShowHideKey.Value, 20);
+                Keyboard.KeyPress(Settings.ShowHideKey.Value, 20);
+                ShowHideLabelTimer.Restart();
+            }
+
             if (Pick_Up_Timer.ElapsedMilliseconds < Settings.PickupTimerDelay)
             {
                 Am_I_Working = false;
