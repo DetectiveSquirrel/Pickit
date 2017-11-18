@@ -135,7 +135,7 @@ namespace Pickit
                 var Item = ItemEntity.ItemOnGround.GetComponent<WorldItem>().ItemEntity;
                 var ClassName = GameController.Files.BaseItemTypes.Translate(Item.Path).ClassName;
                 
-                if (Settings.Rares)
+                if (Settings.Rares && Item.GetComponent<Mods>().ItemRarity == ItemRarity.Rare)
                 {
                     if (Settings.RareJewels && ClassName == "Jewel")
                         return true;
