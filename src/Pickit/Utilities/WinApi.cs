@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Utilities
+namespace Pickit.Utilities
 {
     public class WinApi
     {
