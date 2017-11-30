@@ -1,0 +1,13 @@
+# Names are ItemBaseName
+
+#####################
+# Unique Item Bases #
+#####################
+
+# Rings
+Unset Ring
+Sage's Robe
+Crimson Jewel
+Cobalt Jewel
+Prismatic Jewel
+Viridian Jewel
