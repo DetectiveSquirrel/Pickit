@@ -28,7 +28,6 @@ namespace Pickit.Core
             Gems = true;
             GemQuality = new RangeNode<int>(1, 0, 20);
             GroundChests = false;
-            ShowHideToggle = false;
 
             Rares = true;
             RareJewels = true;
@@ -46,7 +45,28 @@ namespace Pickit.Core
             RareHelmetsilvl = new RangeNode<int>(1, 0, 100);
             RareArmour = false;
             RareArmourilvl = new RangeNode<int>(1, 0, 100);
+
+
+            NonUniqueAndRareRuleFile = new ListNode();
+            UniqueRuleFile = new ListNode();
+            RareRuleFile = new ListNode();
+            ReloadRules = new ButtonNode();
         }
+
+        [Menu("Pickit Rules", 23443)]
+        public EmptyNode PickitRulesEmptyNode { get; set; }
+
+        [Menu("Non Unique/Rare File", 12314, 23443)]
+        public ListNode NonUniqueAndRareRuleFile { get; set; }
+
+        [Menu("Unique File", 12315, 23443)]
+        public ListNode UniqueRuleFile { get; set; }
+
+        [Menu("Rare File", 12313, 23443)]
+        public ListNode RareRuleFile { get; set; }
+
+        [Menu("Reload All Rules", 3264, 23443)]
+        public ButtonNode ReloadRules { get; set; }
 
         [Menu("Pickup Key")]
         public HotkeyNode PickUpKey { get; set; }
@@ -114,25 +134,31 @@ namespace Pickit.Core
         [Menu("ilvl", 381, 38)]
         public RangeNode<int> RareArmourilvl { get; set; }
 
-        [Menu("6 Sockets")]
+        [Menu("Links/Socket/RGB", 5435)]
+        public EmptyNode LinkSocketRgbEmptyNode { get; set; }
+
+        [Menu("6 Sockets", 23432, 5435)]
         public ToggleNode SixSocket { get; set; }
 
-        [Menu("6 Links")]
+        [Menu("6 Links", 23433, 5435)]
         public ToggleNode SixLink { get; set; }
 
-        [Menu("RGB")]
+        [Menu("RGB", 23431, 5435)]
         public ToggleNode RGB { get; set; }
 
-        [Menu("All Divination Cards")]
+        [Menu("Overrides", 24251)]
+        public EmptyNode AllOverridEmptyNode { get; set; }
+
+        [Menu("All Divination Cards", 3451, 24251)]
         public ToggleNode AllDivs { get; set; }
 
-        [Menu("All Currency")]
+        [Menu("All Currency", 3452, 24251)]
         public ToggleNode AllCurrency { get; set; }
 
-        [Menu("All Uniques")]
+        [Menu("All Uniques", 3453, 24251)]
         public ToggleNode AllUniques { get; set; }
 
-        [Menu("Maps", 1)]
+        [Menu("Maps", 1, 24251)]
         public ToggleNode Maps { get; set; }
 
         [Menu("Lowest Tier", 11, 1)]
@@ -144,19 +170,17 @@ namespace Pickit.Core
         [Menu("Fragments", 13, 1)]
         public ToggleNode MapFragments { get; set; }
 
-        [Menu("Gems", 2)]
+        [Menu("Gems", 2, 24251)]
         public ToggleNode Gems { get; set; }
 
         [Menu("Lowest Gem Quality", 22, 2)]
         public RangeNode<int> GemQuality { get; set; }
 
-        [Menu("Quest Items")]
+        [Menu("Quest Items", 645, 24251)]
         public ToggleNode QuestItems { get; set; }
 
         [Menu("Chests")]
         public ToggleNode GroundChests { get; set; }
 
-        [Menu("Show/Hide Items (experimental)")]
-        public ToggleNode ShowHideToggle { get; set; }
     }
 }
