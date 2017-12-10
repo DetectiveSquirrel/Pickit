@@ -211,6 +211,8 @@ namespace Pickit.Core
             return false;
         }
 
+
+
         public bool MiscChecks(ItemsOnGroundLabelElement itemEntity)
         {
             try
@@ -220,7 +222,7 @@ namespace Pickit.Core
 
                 if (Settings.Rares && item.GetComponent<Mods>().ItemRarity == ItemRarity.Rare)
                 {
-                    if (Settings.RareJewels && className == "Jewel")
+                    if (Settings.RareJewels && (className == "Jewel" || className == "AbyssJewel"))
                         return true;
                     if (Settings.RareRings && className == "Ring" &&
                         item.GetComponent<Mods>().ItemLevel >= Settings.RareRingsilvl)
@@ -355,15 +357,15 @@ namespace Pickit.Core
                 if (entity.Path.ToLower().Contains("chests") && entity.IsAlive && entity.IsHostile)
                 {
                     if (!entity.HasComponent<Chest>()) continue;
-                    var ch = entity.GetComponent<Chest>();
-                    if (ch.IsStrongbox) continue;
-                    if (ch.IsOpened) continue;
+                    var chest = entity.GetComponent<Chest>();
+                    if (chest.IsStrongbox) continue;
+                    if (chest.IsOpened) continue;
                     var d = GetEntityDistance(entity);
 
-                    var t = new Tuple<int, long, EntityWrapper>(d, entity.Address, entity);
+                    var tuple = new Tuple<int, long, EntityWrapper>(d, entity.Address, entity);
                     if (sortedByDistChest.Any(x => x.Item2 == entity.Address)) continue;
 
-                    sortedByDistChest.Add(t);
+                    sortedByDistChest.Add(tuple);
                 }
 
             var tempList = sortedByDistChest.OrderBy(x => x.Item1).ToList();
@@ -384,8 +386,8 @@ namespace Pickit.Core
                 camera.WorldToScreen(entity.Pos.Translate(0, 0, 0), entity);
             if (chestScreenCoords == new Vector2()) return;
             var pos = Mouse.GetCursorPosition();
-            var iconRect1 = new Vector2(chestScreenCoords.X, chestScreenCoords.Y);
-            Mouse.SetCursorPosAndLeftClick(iconRect1, 100);
+            var coords = new Vector2(chestScreenCoords.X, chestScreenCoords.Y);
+            Mouse.SetCursorPosAndLeftClick(coords, 100);
             Mouse.SetCursorPos(pos.X, pos.Y);
         }
     }

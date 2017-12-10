@@ -19,6 +19,8 @@ namespace Pickit.Core
             RGB = true;
             AllDivs = true;
             AllCurrency = true;
+            //ScrollLimiToggleNode = false;
+            //ScrollLimit = new RangeNode<int>(40, 1, 40);
             AllUniques = true;
             Maps = true;
             UniqueMap = true;
@@ -154,6 +156,12 @@ namespace Pickit.Core
 
         [Menu("All Currency", 3452, 24251)]
         public ToggleNode AllCurrency { get; set; }
+
+        //[Menu("Limit Scroll Pickup", 34521, 3452)]
+        //public ToggleNode ScrollLimiToggleNode { get; set; }
+
+        //[Menu("Amount", 345211, 34521)]
+        //public RangeNode<int> ScrollLimit { get; set; }
 
         [Menu("All Uniques", 3453, 24251)]
         public ToggleNode AllUniques { get; set; }
