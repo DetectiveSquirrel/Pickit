@@ -53,6 +53,8 @@ namespace Pickit.Core
             UniqueRuleFile = new ListNode();
             RareRuleFile = new ListNode();
             ReloadRules = new ButtonNode();
+
+            LeftClickToggleNode = true;
         }
 
         [Menu("Pickit Rules", 23443)]
@@ -189,6 +191,9 @@ namespace Pickit.Core
 
         [Menu("Chests")]
         public ToggleNode GroundChests { get; set; }
+
+        [Menu("Left Click (On) / Right Click (Off)")]
+        public ToggleNode LeftClickToggleNode { get; set; }
 
     }
 }

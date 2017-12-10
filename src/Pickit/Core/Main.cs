@@ -74,13 +74,6 @@ namespace Pickit.Core
             _rares = LoadPickit(Settings.RareRuleFile.Value);
         }
 
-        private void ReloadRuleFiles()
-        {
-            _uniques = LoadPickit(Settings.UniqueRuleFile.Value);
-            _nonUniqueAndRare = LoadPickit(Settings.NonUniqueAndRareRuleFile.Value);
-            _rares = LoadPickit(Settings.RareRuleFile.Value);
-        }
-
         private void ReloadRuleOnSelectNonUnique(string fileName)
         {
             _nonUniqueAndRare = LoadPickit(fileName);
@@ -335,7 +328,7 @@ namespace Pickit.Core
                     return;
                 }
                 _clickWindowOffset = GameController.Window.GetWindowRectangle().TopLeft;
-                Mouse.SetCursorPosAndLeftClick(vect + _clickWindowOffset, Settings.ExtraDelay);
+                Mouse.SetCursorPosAndLeftOrRightClick(vect + _clickWindowOffset, Settings.ExtraDelay, Settings.LeftClickToggleNode.Value);
                 //Return cursor to center screen
                 // I dont actually like this idea, it annoys eyes
                 //var centerScreen = GameController.Window.GetWindowRectangle().Center;
@@ -387,7 +380,7 @@ namespace Pickit.Core
             if (chestScreenCoords == new Vector2()) return;
             var pos = Mouse.GetCursorPosition();
             var coords = new Vector2(chestScreenCoords.X, chestScreenCoords.Y);
-            Mouse.SetCursorPosAndLeftClick(coords, 100);
+            Mouse.SetCursorPosAndLeftOrRightClick(coords, 100, Settings.LeftClickToggleNode.Value);
             Mouse.SetCursorPos(pos.X, pos.Y);
         }
     }

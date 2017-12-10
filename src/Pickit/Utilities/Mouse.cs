@@ -98,13 +98,33 @@ namespace Pickit.Utilities
 
         public static void SetCursorPosAndLeftClick(Vector2 coords, int extraDelay)
         {
-            var posX = (int) coords.X;
-            var posY = (int) coords.Y;
+            var posX = (int)coords.X;
+            var posY = (int)coords.Y;
             SetCursorPos(posX, posY);
             Thread.Sleep(MovementDelay + extraDelay);
             mouse_event(MouseeventfLeftdown, 0, 0, 0, 0);
             Thread.Sleep(ClickDelay);
             mouse_event(MouseeventfLeftup, 0, 0, 0, 0);
+        }
+
+        public static void SetCursorPosAndLeftOrRightClick(Vector2 coords, int extraDelay, bool leftClick = true)
+        {
+            var posX = (int)coords.X;
+            var posY = (int)coords.Y;
+            SetCursorPos(posX, posY);
+            Thread.Sleep(MovementDelay + extraDelay);
+
+            if (leftClick)
+                LeftMouseDown();
+            else
+                RightMouseDown();
+
+            Thread.Sleep(ClickDelay);
+
+            if (leftClick)
+                LeftMouseUp();
+            else
+                RightMouseUp();
         }
 
         public static void VerticalScroll(bool forward, int clicks)
