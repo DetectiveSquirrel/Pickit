@@ -192,7 +192,7 @@ namespace Pickit.Core
         [Menu("Chests")]
         public ToggleNode GroundChests { get; set; }
 
-        [Menu("Left Click (On) / Right Click (Off)")]
+        [Menu("Left Click = On / Right Click = Off")]
         public ToggleNode LeftClickToggleNode { get; set; }
 
     }
