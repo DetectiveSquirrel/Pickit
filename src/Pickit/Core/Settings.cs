@@ -31,6 +31,9 @@ namespace Pickit.Core
             GemQuality = new RangeNode<int>(1, 0, 20);
             GroundChests = false;
 
+            ShaperItems = true;
+            ElderItems = true;
+
             Rares = true;
             RareJewels = true;
             RareRings = true;
@@ -89,6 +92,12 @@ namespace Pickit.Core
 
         [Menu("Pickup Delay")]
         public RangeNode<int> PickupTimerDelay { get; set; }
+
+        [Menu("Shaper Items")]
+        public ToggleNode ShaperItems { get; set; }
+
+        [Menu("Elder Items")]
+        public ToggleNode ElderItems { get; set; }
 
         [Menu("Rares", 3)]
         public ToggleNode Rares { get; set; }

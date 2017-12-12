@@ -22,6 +22,7 @@ using PoeHUD.Poe.Components;
 using PoeHUD.Poe.Elements;
 using SharpDX;
 using Map = PoeHUD.Poe.Components.Map;
+using PoeHUD.Poe.EntityComponents;
 
 namespace Pickit.Core
 {
@@ -212,6 +213,14 @@ namespace Pickit.Core
             {
                 var item = itemEntity.ItemOnGround.GetComponent<WorldItem>().ItemEntity;
                 var className = GameController.Files.BaseItemTypes.Translate(item.Path).ClassName;
+
+                if (Settings.ElderItems)
+                    if (item.GetComponent<Base>().isElder)
+                        return true;
+                
+                if (Settings.ShaperItems)
+                    if (item.GetComponent<Base>().isShaper)
+                        return true;
 
                 if (Settings.Rares && item.GetComponent<Mods>().ItemRarity == ItemRarity.Rare)
                 {
