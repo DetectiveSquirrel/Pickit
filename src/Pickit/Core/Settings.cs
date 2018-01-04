@@ -9,7 +9,6 @@ namespace Pickit.Core
         public Settings()
         {
             PickUpKey = Keys.F1;
-            ShowHideKey = Keys.Z;
             PickupRange = new RangeNode<int>(600, 1, 1000);
             ChestRange = new RangeNode<int>(500, 1, 1000);
             ExtraDelay = new RangeNode<int>(0, 0, 200);
@@ -19,8 +18,6 @@ namespace Pickit.Core
             RGB = true;
             AllDivs = true;
             AllCurrency = true;
-            //ScrollLimiToggleNode = false;
-            //ScrollLimit = new RangeNode<int>(40, 1, 40);
             AllUniques = true;
             Maps = true;
             UniqueMap = true;
@@ -52,9 +49,10 @@ namespace Pickit.Core
             RareArmourilvl = new RangeNode<int>(1, 0, 100);
 
 
-            NonUniqueAndRareRuleFile = new ListNode();
-            UniqueRuleFile = new ListNode();
+            NormalRuleFile = new ListNode();
+            MagicRuleFile = new ListNode();
             RareRuleFile = new ListNode();
+            UniqueRuleFile = new ListNode();
             ReloadRules = new ButtonNode();
 
             LeftClickToggleNode = true;
@@ -63,23 +61,23 @@ namespace Pickit.Core
         [Menu("Pickit Rules", 23443)]
         public EmptyNode PickitRulesEmptyNode { get; set; }
 
-        [Menu("Non Unique/Rare File", 12314, 23443)]
-        public ListNode NonUniqueAndRareRuleFile { get; set; }
+        [Menu("Normal", 12314, 23443)]
+        public ListNode NormalRuleFile { get; set; }
 
-        [Menu("Unique File", 12315, 23443)]
-        public ListNode UniqueRuleFile { get; set; }
+        [Menu("Magic", 12316, 23443)]
+        public ListNode MagicRuleFile { get; set; }
 
-        [Menu("Rare File", 12313, 23443)]
+        [Menu("Rare", 12313, 23443)]
         public ListNode RareRuleFile { get; set; }
+
+        [Menu("Unique", 12315, 23443)]
+        public ListNode UniqueRuleFile { get; set; }
 
         [Menu("Reload All Rules", 3264, 23443)]
         public ButtonNode ReloadRules { get; set; }
 
         [Menu("Pickup Key")]
         public HotkeyNode PickUpKey { get; set; }
-
-        [Menu("Show/Hide Items Key")]
-        public HotkeyNode ShowHideKey { get; set; }
 
         [Menu("Pickup Radius")]
         public RangeNode<int> PickupRange { get; set; }
@@ -168,12 +166,6 @@ namespace Pickit.Core
         [Menu("All Currency", 3452, 24251)]
         public ToggleNode AllCurrency { get; set; }
 
-        //[Menu("Limit Scroll Pickup", 34521, 3452)]
-        //public ToggleNode ScrollLimiToggleNode { get; set; }
-
-        //[Menu("Amount", 345211, 34521)]
-        //public RangeNode<int> ScrollLimit { get; set; }
-
         [Menu("All Uniques", 3453, 24251)]
         public ToggleNode AllUniques { get; set; }
 
@@ -201,7 +193,7 @@ namespace Pickit.Core
         [Menu("Chests")]
         public ToggleNode GroundChests { get; set; }
 
-        [Menu("Left Click = On / Right Click = Off")]
+        [Menu("Click Type", "On: Left Click\nOff: Right Click")]
         public ToggleNode LeftClickToggleNode { get; set; }
 
     }

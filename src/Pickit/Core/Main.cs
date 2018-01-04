@@ -12,7 +12,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Pickit.Filters;
 using Pickit.Utilities;
+using PoeHUD.Framework;
 using PoeHUD.Framework.Helpers;
 using PoeHUD.Models;
 using PoeHUD.Models.Enums;
@@ -20,9 +22,10 @@ using PoeHUD.Models.Interfaces;
 using PoeHUD.Plugins;
 using PoeHUD.Poe.Components;
 using PoeHUD.Poe.Elements;
+using PoeHUD.Poe.EntityComponents;
 using SharpDX;
 using Map = PoeHUD.Poe.Components.Map;
-using PoeHUD.Poe.EntityComponents;
+using Memory = Pickit.Utilities.Memory;
 
 namespace Pickit.Core
 {
@@ -31,18 +34,19 @@ namespace Pickit.Core
         private const int PixelBorder = 3;
 
         private const string PickitRuleDirectory = "Pickit Rules";
+
+        private const string FitersConfigFile = "FitersConfig.txt";
         private readonly List<EntityWrapper> _entities = new List<EntityWrapper>();
         private readonly Stopwatch _pickUpTimer = Stopwatch.StartNew();
-        private bool _amIWorking;
 
         private Vector2 _clickWindowOffset;
+        private List<CustomFilter> _customFilters;
+        private HashSet<string> _magicRules;
 
-        private HashSet<string> _nonUniqueAndRare;
-
-        private HashSet<string> _rares
-            ;
-
-        private HashSet<string> _uniques;
+        private HashSet<string> _normalRules;
+        private HashSet<string> _rareRules;
+        private HashSet<string> _uniqueRules;
+        private bool _working;
 
         public Main()
         {
@@ -51,14 +55,19 @@ namespace Pickit.Core
 
         private string PickitConfigFileDirectory => LocalPluginDirectory + @"\" + PickitRuleDirectory;
 
+        internal Memory Process { get; private set; }
+
         public override void Initialise()
         {
-            Settings.NonUniqueAndRareRuleFile.OnValueSelected += ReloadRuleOnSelectNonUnique;
-            Settings.UniqueRuleFile.OnValueSelected += ReloadRuleOnSelectUnique;
+            Settings.NormalRuleFile.OnValueSelected += ReloadRuleOnSelectNormal;
+            Settings.MagicRuleFile.OnValueSelected += ReloadRuleOnSelectMagic;
             Settings.RareRuleFile.OnValueSelected += ReloadRuleOnSelectRare;
+            Settings.UniqueRuleFile.OnValueSelected += ReloadRuleOnSelectUnique;
             Settings.ReloadRules.OnPressed += LoadRuleFiles;
 
             LoadRuleFiles();
+
+            Process = new Memory(GameController.Window.Process.Id);
         }
 
         private void LoadRuleFiles()
@@ -66,28 +75,37 @@ namespace Pickit.Core
             var dirInfo = new DirectoryInfo(PickitConfigFileDirectory);
             var pickitFiles = dirInfo.GetFiles("*.txt").Select(x => Path.GetFileNameWithoutExtension(x.Name)).ToList();
 
-            Settings.UniqueRuleFile.SetListValues(pickitFiles);
-            Settings.NonUniqueAndRareRuleFile.SetListValues(pickitFiles);
+            LoadCustomFilters();
+
+            Settings.NormalRuleFile.SetListValues(pickitFiles);
+            Settings.MagicRuleFile.SetListValues(pickitFiles);
             Settings.RareRuleFile.SetListValues(pickitFiles);
+            Settings.UniqueRuleFile.SetListValues(pickitFiles);
 
-            _uniques = LoadPickit(Settings.UniqueRuleFile.Value);
-            _nonUniqueAndRare = LoadPickit(Settings.NonUniqueAndRareRuleFile.Value);
-            _rares = LoadPickit(Settings.RareRuleFile.Value);
+            _normalRules = LoadPickit(Settings.NormalRuleFile.Value);
+            _magicRules = LoadPickit(Settings.MagicRuleFile.Value);
+            _rareRules = LoadPickit(Settings.RareRuleFile.Value);
+            _uniqueRules = LoadPickit(Settings.UniqueRuleFile.Value);
         }
 
-        private void ReloadRuleOnSelectNonUnique(string fileName)
+        private void ReloadRuleOnSelectNormal(string fileName)
         {
-            _nonUniqueAndRare = LoadPickit(fileName);
+            _normalRules = LoadPickit(fileName);
         }
 
-        private void ReloadRuleOnSelectUnique(string fileName)
+        private void ReloadRuleOnSelectMagic(string fileName)
         {
-            _uniques = LoadPickit(fileName);
+            _magicRules = LoadPickit(fileName);
         }
 
         private void ReloadRuleOnSelectRare(string fileName)
         {
-            _rares = LoadPickit(fileName);
+            _rareRules = LoadPickit(fileName);
+        }
+
+        private void ReloadRuleOnSelectUnique(string fileName)
+        {
+            _uniqueRules = LoadPickit(fileName);
         }
 
         public override void Render()
@@ -97,10 +115,11 @@ namespace Pickit.Core
             try
             {
                 if (!Keyboard.IsKeyDown((int) Settings.PickUpKey.Value)) return;
-                if (_amIWorking)
+                if (_working)
                     return;
-                _amIWorking = true;
-                NewPickUp();
+                _working = true;
+                PickUpItem();
+                //PickUpItemTest();
             }
             catch
             {
@@ -122,7 +141,7 @@ namespace Pickit.Core
             lines.Where(x => !string.IsNullOrWhiteSpace(x) && !x.StartsWith("#"))
                 .ForEach(x => hashSet.Add(x.Trim().ToLowerInvariant()));
 
-            LogMessage($"PICKIT :: completed load for {fileName}", 5, Color.GreenYellow);
+            LogMessage($"PICKIT :: (Re)Loaded {fileName}", 5, Color.GreenYellow);
 
             return hashSet;
         }
@@ -147,7 +166,7 @@ namespace Pickit.Core
             return (int) distanceToEntity;
         }
 
-        public bool InListNonUniqueAndRare(ItemsOnGroundLabelElement itemEntity)
+        public bool InListNormal(ItemsOnGroundLabelElement itemEntity)
         {
             try
             {
@@ -155,8 +174,10 @@ namespace Pickit.Core
 
                 var itemEntityName = GameController.Files.BaseItemTypes.Translate(item.Path).BaseName;
                 var rarity = item.GetComponent<Mods>().ItemRarity;
-                if (_nonUniqueAndRare.Contains(itemEntityName) && rarity != ItemRarity.Unique &&
-                    rarity != ItemRarity.Rare)
+                if (_normalRules.Contains(itemEntityName) &&
+                    rarity != ItemRarity.Magic &&
+                    rarity != ItemRarity.Rare &&
+                    rarity != ItemRarity.Unique)
                     return true;
             }
             catch
@@ -167,7 +188,7 @@ namespace Pickit.Core
             return false;
         }
 
-        public bool InListUnique(ItemsOnGroundLabelElement itemEntity)
+        public bool InListMagic(ItemsOnGroundLabelElement itemEntity)
         {
             try
             {
@@ -175,7 +196,10 @@ namespace Pickit.Core
 
                 var itemEntityName = GameController.Files.BaseItemTypes.Translate(item.Path).BaseName;
                 var rarity = item.GetComponent<Mods>().ItemRarity;
-                if (_uniques.Contains(itemEntityName) && rarity == ItemRarity.Unique)
+                if (_magicRules.Contains(itemEntityName) &&
+                    rarity != ItemRarity.Normal &&
+                    rarity != ItemRarity.Rare &&
+                    rarity != ItemRarity.Unique)
                     return true;
             }
             catch
@@ -194,7 +218,32 @@ namespace Pickit.Core
 
                 var itemEntityName = GameController.Files.BaseItemTypes.Translate(item.Path).BaseName;
                 var rarity = item.GetComponent<Mods>().ItemRarity;
-                if (_rares.Contains(itemEntityName) && rarity == ItemRarity.Rare)
+                if (_rareRules.Contains(itemEntityName) &&
+                    rarity != ItemRarity.Normal &&
+                    rarity != ItemRarity.Magic &&
+                    rarity != ItemRarity.Unique)
+                    return true;
+            }
+            catch
+            {
+                // ignored
+            }
+
+            return false;
+        }
+
+        public bool InListUnique(ItemsOnGroundLabelElement itemEntity)
+        {
+            try
+            {
+                var item = itemEntity.ItemOnGround.GetComponent<WorldItem>().ItemEntity;
+
+                var itemEntityName = GameController.Files.BaseItemTypes.Translate(item.Path).BaseName;
+                var rarity = item.GetComponent<Mods>().ItemRarity;
+                if (_uniqueRules.Contains(itemEntityName) &&
+                    rarity != ItemRarity.Normal &&
+                    rarity != ItemRarity.Magic &&
+                    rarity != ItemRarity.Rare)
                     return true;
             }
             catch
@@ -206,8 +255,7 @@ namespace Pickit.Core
         }
 
 
-
-        public bool MiscChecks(ItemsOnGroundLabelElement itemEntity)
+        public bool OverrideChecks(ItemsOnGroundLabelElement itemEntity)
         {
             try
             {
@@ -217,7 +265,7 @@ namespace Pickit.Core
                 if (Settings.ElderItems)
                     if (item.GetComponent<Base>().isElder)
                         return true;
-                
+
                 if (Settings.ShaperItems)
                     if (item.GetComponent<Base>().isShaper)
                         return true;
@@ -284,6 +332,14 @@ namespace Pickit.Core
             return false;
         }
 
+        private void LoadCustomFilters()
+        {
+            var filterPath = Path.Combine(PluginDirectory, FitersConfigFile);
+            var filtersLines = File.ReadAllLines(filterPath);
+            var unused = new FilterParser();
+            _customFilters = FilterParser.Parse(filtersLines);
+        }
+
         public override void EntityAdded(EntityWrapper entityWrapper)
         {
             _entities.Add(entityWrapper);
@@ -294,11 +350,118 @@ namespace Pickit.Core
             _entities.Remove(entityWrapper);
         }
 
-        private void NewPickUp()
+        public bool DoWePickThis(ItemsOnGroundLabelElement itemEntity)
+        {
+            var pickItemUp = false;
+
+            switch (itemEntity.ItemOnGround.GetComponent<WorldItem>().ItemEntity.GetComponent<Mods>().ItemRarity)
+            {
+                case ItemRarity.Normal:
+                    if (InListNormal(itemEntity))
+                        pickItemUp = true;
+                    break;
+                case ItemRarity.Magic:
+                    if (InListMagic(itemEntity))
+                        pickItemUp = true;
+                    break;
+                case ItemRarity.Rare:
+                    if (InListRare(itemEntity))
+                        pickItemUp = true;
+                    break;
+                case ItemRarity.Unique:
+                    if (InListUnique(itemEntity))
+                        pickItemUp = true;
+                    break;
+            }
+
+            if (OverrideChecks(itemEntity))
+                pickItemUp = true;
+
+            return pickItemUp;
+        }
+
+        public bool DoWePickThisTest(ItemsOnGroundLabelElement itemEntity)
+        {
+            var pickItemUp = false;
+
+            switch (itemEntity.ItemOnGround.GetComponent<WorldItem>().ItemEntity.GetComponent<Mods>().ItemRarity)
+            {
+                case ItemRarity.Normal:
+                    if (InListNormal(itemEntity))
+                        pickItemUp = true;
+                    break;
+                case ItemRarity.Magic:
+                    if (InListMagic(itemEntity))
+                        pickItemUp = true;
+                    break;
+                case ItemRarity.Rare:
+                    if (InListRare(itemEntity))
+                        pickItemUp = true;
+                    break;
+                case ItemRarity.Unique:
+                    if (InListUnique(itemEntity))
+                        pickItemUp = true;
+                    break;
+            }
+
+            if (OverrideChecks(itemEntity))
+                pickItemUp = true;
+
+            return pickItemUp;
+        }
+
+        private void PickUpItemTest()
         {
             if (_pickUpTimer.ElapsedMilliseconds < Settings.PickupTimerDelay)
             {
-                _amIWorking = false;
+                _working = false;
+                return;
+            }
+            _pickUpTimer.Restart();
+
+            var currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabels
+                .Where(x => x.ItemOnGround.Path.ToLower().Contains("worlditem") && x.IsVisible &&
+                            (x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds == 0))
+                .Select(x => new Tuple<int, ItemsOnGroundLabelElement>(GetEntityDistance(x.ItemOnGround), x))
+                .OrderBy(x => x.Item1)
+                .ToList();
+
+            LogMessage(currentLabels.Count, 10);
+
+
+            Tuple<int, ItemsOnGroundLabelElement> pickUpThisItem = null;
+            foreach (var x in currentLabels)
+                if (CheckFilters(new ItemData(x.Item2,
+                        GameController.Files.BaseItemTypes.Translate(x.Item2.ItemOnGround.Path))) != null &&
+                    x.Item1 < Settings.PickupRange)
+                {
+                    pickUpThisItem = x;
+                    break;
+                }
+
+            if (pickUpThisItem != null)
+            {
+                if (PickItem(pickUpThisItem)) return;
+            }
+            else if (Settings.GroundChests)
+            {
+                ClickOnChests();
+            }
+            _working = false;
+        }
+
+        private bool CheckFilters(ItemData itemData)
+        {
+            var result = _customFilters.Any(filter => filter.CompareItem(itemData));
+            LogMessage(result.ToString(), 10);
+            return result;
+        }
+
+        private void PickUpItem()
+        {
+            if (_pickUpTimer.ElapsedMilliseconds < Settings.PickupTimerDelay)
+            {
+                _working = false;
                 return;
             }
             _pickUpTimer.Restart();
@@ -312,42 +475,55 @@ namespace Pickit.Core
 
 
             var pickUpThisItem = (from x in currentLabels
-                where (InListNonUniqueAndRare(x.Item2) || InListUnique(x.Item2) || InListRare(x.Item2) ||
-                       MiscChecks(x.Item2))
+                where DoWePickThis(x.Item2)
                       && x.Item1 < Settings.PickupRange
                 select x).FirstOrDefault();
 
             if (pickUpThisItem != null)
             {
-                if (pickUpThisItem.Item1 >= Settings.PickupRange)
-                {
-                    _amIWorking = false;
-                    return;
-                }
-                var vect = pickUpThisItem.Item2.Label.GetClientRect().Center;
-                var vectWindow = GameController.Window.GetWindowRectangle();
-                if (vect.Y + PixelBorder > vectWindow.Bottom || vect.Y - PixelBorder < vectWindow.Top)
-                {
-                    _amIWorking = false;
-                    return;
-                }
-                if (vect.X + PixelBorder > vectWindow.Right || vect.X - PixelBorder < vectWindow.Left)
-                {
-                    _amIWorking = false;
-                    return;
-                }
-                _clickWindowOffset = GameController.Window.GetWindowRectangle().TopLeft;
-                Mouse.SetCursorPosAndLeftOrRightClick(vect + _clickWindowOffset, Settings.ExtraDelay, Settings.LeftClickToggleNode.Value);
-                //Return cursor to center screen
-                // I dont actually like this idea, it annoys eyes
-                //var centerScreen = GameController.Window.GetWindowRectangle().Center;
-                //Mouse.SetCursorPos(centerScreen);
+                if (PickItem(pickUpThisItem)) return;
             }
             else if (Settings.GroundChests)
             {
                 ClickOnChests();
             }
-            _amIWorking = false;
+            _working = false;
+        }
+
+        private bool PickItem(Tuple<int, ItemsOnGroundLabelElement> pickUpThisItem)
+        {
+            if (pickUpThisItem.Item1 >= Settings.PickupRange)
+            {
+                _working = false;
+                return true;
+            }
+            var vect = pickUpThisItem.Item2.Label.GetClientRect().Center;
+            var vectWindow = GameController.Window.GetWindowRectangle();
+            if (vect.Y + PixelBorder > vectWindow.Bottom || vect.Y - PixelBorder < vectWindow.Top)
+            {
+                _working = false;
+                return true;
+            }
+            if (vect.X + PixelBorder > vectWindow.Right || vect.X - PixelBorder < vectWindow.Left)
+            {
+                _working = false;
+                return true;
+            }
+            _clickWindowOffset = GameController.Window.GetWindowRectangle().TopLeft;
+
+            var address = pickUpThisItem.Item2.ItemOnGround.GetComponent<Targetable>().Address;
+            var isTargeted = address != 0 && Memory.ReadByte(address + 0x2A) == 1;
+
+            Mouse.SetCursorPos(vect + _clickWindowOffset);
+            if (!isTargeted) return false;
+
+            if (Settings.LeftClickToggleNode)
+                Mouse.LeftClick(Settings.ExtraDelay);
+            else
+                Mouse.RightClick(Settings.ExtraDelay);
+
+
+            return false;
         }
 
         // Copy-Paste - Qvin0000's version
@@ -377,7 +553,7 @@ namespace Pickit.Core
             var centerScreen = GameController.Window.GetWindowRectangle().Center;
             Mouse.SetCursorPos(centerScreen);
 
-            _amIWorking = false;
+            _working = false;
         }
 
         //Copy-Paste - Sithylis_QoL
