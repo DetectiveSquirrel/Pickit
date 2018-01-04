@@ -1,0 +1,34 @@
+# Names are ItemBaseName
+
+############
+# Currency #
+############
+
+# Full #
+Exalted Orb
+Chaos Orb
+Mirror of Kalandra
+Albino Rhoa Feather
+Perandus Coin
+
+# Sextants
+Journeyman Cartographer's Sextant
+Master Cartographer's Sextant
+
+# Shards #
+Ancient Shard
+Exalted Shard
+Horizon Shard
+Mirror Shard
+
+Harbinger's Shard
+
+# Splinters
+Splinter of Chayula
+
+#Divination Cards
+Chaos Disposition
+
+# Labyrinth #
+Treasure Key
+Golden Key

@@ -75,7 +75,7 @@ namespace Pickit.Core
             var dirInfo = new DirectoryInfo(PickitConfigFileDirectory);
             var pickitFiles = dirInfo.GetFiles("*.txt").Select(x => Path.GetFileNameWithoutExtension(x.Name)).ToList();
 
-            LoadCustomFilters();
+            //LoadCustomFilters();
 
             Settings.NormalRuleFile.SetListValues(pickitFiles);
             Settings.MagicRuleFile.SetListValues(pickitFiles);
