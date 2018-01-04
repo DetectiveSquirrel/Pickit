@@ -48,6 +48,7 @@ namespace Pickit.Core
             RareArmour = false;
             RareArmourilvl = new RangeNode<int>(1, 0, 100);
 
+            PickUpEverything = false;
 
             NormalRuleFile = new ListNode();
             MagicRuleFile = new ListNode();
@@ -159,6 +160,9 @@ namespace Pickit.Core
 
         [Menu("Overrides", 24251)]
         public EmptyNode AllOverridEmptyNode { get; set; }
+
+        [Menu("Pickup Everything", "Picks up EVERYTHING", 3245324, 24251)]
+        public ToggleNode PickUpEverything { get; set; }
 
         [Menu("All Divination Cards", 3451, 24251)]
         public ToggleNode AllDivs { get; set; }

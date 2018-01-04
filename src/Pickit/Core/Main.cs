@@ -354,6 +354,9 @@ namespace Pickit.Core
         {
             var pickItemUp = false;
 
+            if (Settings.PickUpEverything)
+                return true;
+
             switch (itemEntity.ItemOnGround.GetComponent<WorldItem>().ItemEntity.GetComponent<Mods>().ItemRarity)
             {
                 case ItemRarity.Normal:
