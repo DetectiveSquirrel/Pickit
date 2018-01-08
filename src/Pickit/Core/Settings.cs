@@ -13,8 +13,10 @@ namespace Pickit.Core
             ChestRange = new RangeNode<int>(500, 1, 1000);
             ExtraDelay = new RangeNode<int>(0, 0, 200);
             PickupTimerDelay = new RangeNode<int>(124, 1, 200);
-            SixSocket = true;
-            SixLink = true;
+            Sockets = true;
+            TotalSockets = new RangeNode<int>(6, 1, 6);
+            Links = true;
+            LargestLink = new RangeNode<int>(6, 1, 6);
             RGB = true;
             AllDivs = true;
             AllCurrency = true;
@@ -149,12 +151,18 @@ namespace Pickit.Core
         [Menu("Links/Socket/RGB", 5435)]
         public EmptyNode LinkSocketRgbEmptyNode { get; set; }
 
-        [Menu("6 Sockets", 23432, 5435)]
-        public ToggleNode SixSocket { get; set; }
+        [Menu("Sockets", 23432, 5435)]
+        public ToggleNode Sockets { get; set; }
 
-        [Menu("6 Links", 23433, 5435)]
-        public ToggleNode SixLink { get; set; }
+        [Menu("Minimum Sockets", 234321, 23432)]
+        public RangeNode<int> TotalSockets { get; set; }
 
+        [Menu("Links", 23433, 5435)]
+        public ToggleNode Links { get; set; }
+
+        [Menu("Largest Link", 234331, 23433)]
+        public RangeNode<int> LargestLink { get; set; }
+         
         [Menu("RGB", 23431, 5435)]
         public ToggleNode RGB { get; set; }
 

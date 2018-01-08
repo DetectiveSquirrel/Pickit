@@ -68,10 +68,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\CustomItem.cs" />
     <Compile Include="Core\Main.cs" />
     <Compile Include="Core\Settings.cs" />
-    <Compile Include="Filters\FiltersParser.cs" />
-    <Compile Include="Filters\ItemData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\Keyboard.cs" />
     <Compile Include="Utilities\Memory.cs" />
@@ -84,10 +83,7 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Filter Tests\" />
-    <Folder Include="PoeFilterParser\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

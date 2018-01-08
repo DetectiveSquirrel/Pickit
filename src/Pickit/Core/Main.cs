@@ -12,20 +12,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Pickit.Filters;
 using Pickit.Utilities;
-using PoeHUD.Framework;
 using PoeHUD.Framework.Helpers;
 using PoeHUD.Models;
 using PoeHUD.Models.Enums;
-using PoeHUD.Models.Interfaces;
 using PoeHUD.Plugins;
 using PoeHUD.Poe.Components;
-using PoeHUD.Poe.Elements;
-using PoeHUD.Poe.EntityComponents;
 using SharpDX;
-using Map = PoeHUD.Poe.Components.Map;
-using Memory = Pickit.Utilities.Memory;
 
 namespace Pickit.Core
 {
@@ -35,12 +28,10 @@ namespace Pickit.Core
 
         private const string PickitRuleDirectory = "Pickit Rules";
 
-        private const string FitersConfigFile = "FitersConfig.txt";
         private readonly List<EntityWrapper> _entities = new List<EntityWrapper>();
         private readonly Stopwatch _pickUpTimer = Stopwatch.StartNew();
 
         private Vector2 _clickWindowOffset;
-        private List<CustomFilter> _customFilters;
         private HashSet<string> _magicRules;
 
         private HashSet<string> _normalRules;
@@ -118,7 +109,7 @@ namespace Pickit.Core
                 if (_working)
                     return;
                 _working = true;
-                PickUpItem();
+                FindItemToPick();
                 //PickUpItemTest();
             }
             catch
@@ -146,104 +137,11 @@ namespace Pickit.Core
             return hashSet;
         }
 
-        private int GetEntityDistance(EntityWrapper entity)
-        {
-            var playerPosition = GameController.Player.GetComponent<Positioned>();
-            var monsterPosition = entity.GetComponent<Positioned>();
-            var distanceToEntity = Math.Sqrt(Math.Pow(playerPosition.X - monsterPosition.X, 2) +
-                                             Math.Pow(playerPosition.Y - monsterPosition.Y, 2));
-
-            return (int) distanceToEntity;
-        }
-
-        private int GetEntityDistance(IEntity entity)
-        {
-            var playerPosition = GameController.Player.GetComponent<Positioned>();
-            var monsterPosition = entity.GetComponent<Positioned>();
-            var distanceToEntity = Math.Sqrt(Math.Pow(playerPosition.X - monsterPosition.X, 2) +
-                                             Math.Pow(playerPosition.Y - monsterPosition.Y, 2));
-
-            return (int) distanceToEntity;
-        }
-
-        public bool InListNormal(ItemsOnGroundLabelElement itemEntity)
+        public bool InCustomList(HashSet<string> checkList , CustomItem itemEntity, ItemRarity rarity)
         {
             try
             {
-                var item = itemEntity.ItemOnGround.GetComponent<WorldItem>().ItemEntity;
-
-                var itemEntityName = GameController.Files.BaseItemTypes.Translate(item.Path).BaseName;
-                var rarity = item.GetComponent<Mods>().ItemRarity;
-                if (_normalRules.Contains(itemEntityName) &&
-                    rarity != ItemRarity.Magic &&
-                    rarity != ItemRarity.Rare &&
-                    rarity != ItemRarity.Unique)
-                    return true;
-            }
-            catch
-            {
-                // ignored
-            }
-
-            return false;
-        }
-
-        public bool InListMagic(ItemsOnGroundLabelElement itemEntity)
-        {
-            try
-            {
-                var item = itemEntity.ItemOnGround.GetComponent<WorldItem>().ItemEntity;
-
-                var itemEntityName = GameController.Files.BaseItemTypes.Translate(item.Path).BaseName;
-                var rarity = item.GetComponent<Mods>().ItemRarity;
-                if (_magicRules.Contains(itemEntityName) &&
-                    rarity != ItemRarity.Normal &&
-                    rarity != ItemRarity.Rare &&
-                    rarity != ItemRarity.Unique)
-                    return true;
-            }
-            catch
-            {
-                // ignored
-            }
-
-            return false;
-        }
-
-        public bool InListRare(ItemsOnGroundLabelElement itemEntity)
-        {
-            try
-            {
-                var item = itemEntity.ItemOnGround.GetComponent<WorldItem>().ItemEntity;
-
-                var itemEntityName = GameController.Files.BaseItemTypes.Translate(item.Path).BaseName;
-                var rarity = item.GetComponent<Mods>().ItemRarity;
-                if (_rareRules.Contains(itemEntityName) &&
-                    rarity != ItemRarity.Normal &&
-                    rarity != ItemRarity.Magic &&
-                    rarity != ItemRarity.Unique)
-                    return true;
-            }
-            catch
-            {
-                // ignored
-            }
-
-            return false;
-        }
-
-        public bool InListUnique(ItemsOnGroundLabelElement itemEntity)
-        {
-            try
-            {
-                var item = itemEntity.ItemOnGround.GetComponent<WorldItem>().ItemEntity;
-
-                var itemEntityName = GameController.Files.BaseItemTypes.Translate(item.Path).BaseName;
-                var rarity = item.GetComponent<Mods>().ItemRarity;
-                if (_uniqueRules.Contains(itemEntityName) &&
-                    rarity != ItemRarity.Normal &&
-                    rarity != ItemRarity.Magic &&
-                    rarity != ItemRarity.Rare)
+                if (checkList.Contains(itemEntity.BaseName) && itemEntity.Rarity == rarity)
                     return true;
             }
             catch
@@ -255,73 +153,70 @@ namespace Pickit.Core
         }
 
 
-        public bool OverrideChecks(ItemsOnGroundLabelElement itemEntity)
+        public bool OverrideChecks(CustomItem item)
         {
             try
             {
-                var item = itemEntity.ItemOnGround.GetComponent<WorldItem>().ItemEntity;
-                var className = GameController.Files.BaseItemTypes.Translate(item.Path).ClassName;
-
                 if (Settings.ElderItems)
-                    if (item.GetComponent<Base>().isElder)
+                    if (item.IsElder)
                         return true;
 
                 if (Settings.ShaperItems)
-                    if (item.GetComponent<Base>().isShaper)
+                    if (item.IsShaper)
                         return true;
 
-                if (Settings.Rares && item.GetComponent<Mods>().ItemRarity == ItemRarity.Rare)
+                if (Settings.Rares && item.Rarity == ItemRarity.Rare)
                 {
-                    if (Settings.RareJewels && (className == "Jewel" || className == "AbyssJewel"))
+                    if (Settings.RareJewels && (item.ClassName == "Jewel" || item.ClassName == "AbyssJewel"))
                         return true;
-                    if (Settings.RareRings && className == "Ring" &&
-                        item.GetComponent<Mods>().ItemLevel >= Settings.RareRingsilvl)
+                    if (Settings.RareRings && item.ClassName == "Ring" &&
+                        item.ItemLevel >= Settings.RareRingsilvl)
                         return true;
-                    if (Settings.RareAmulets && className == "Amulet" &&
-                        item.GetComponent<Mods>().ItemLevel >= Settings.RareAmuletsilvl)
+                    if (Settings.RareAmulets && item.ClassName == "Amulet" &&
+                        item.ItemLevel >= Settings.RareAmuletsilvl)
                         return true;
-                    if (Settings.RareBelts && className == "Belt" &&
-                        item.GetComponent<Mods>().ItemLevel >= Settings.RareBeltsilvl)
+                    if (Settings.RareBelts && item.ClassName == "Belt" &&
+                        item.ItemLevel >= Settings.RareBeltsilvl)
                         return true;
-                    if (Settings.RareGloves && className == "Gloves" &&
-                        item.GetComponent<Mods>().ItemLevel >= Settings.RareGlovesilvl)
+                    if (Settings.RareGloves && item.ClassName == "Gloves" &&
+                        item.ItemLevel >= Settings.RareGlovesilvl)
                         return true;
-                    if (Settings.RareBoots && className == "Boots" &&
-                        item.GetComponent<Mods>().ItemLevel >= Settings.RareBootsilvl)
+                    if (Settings.RareBoots && item.ClassName == "Boots" &&
+                        item.ItemLevel >= Settings.RareBootsilvl)
                         return true;
-                    if (Settings.RareHelmets && className == "Helmet" &&
-                        item.GetComponent<Mods>().ItemLevel >= Settings.RareHelmetsilvl)
+                    if (Settings.RareHelmets && item.ClassName == "Helmet" &&
+                        item.ItemLevel >= Settings.RareHelmetsilvl)
                         return true;
-                    if (Settings.RareArmour && className == "Body Armour" &&
-                        item.GetComponent<Mods>().ItemLevel >= Settings.RareArmourilvl)
+                    if (Settings.RareArmour && item.ClassName == "Body Armour" &&
+                        item.ItemLevel >= Settings.RareArmourilvl)
                         return true;
                 }
 
-                if (Settings.SixSocket && item.GetComponent<Sockets>().NumberOfSockets == 6)
+                if (Settings.Sockets && item.Sockets >= Settings.TotalSockets.Value)
                     return true;
-                if (Settings.SixLink && item.GetComponent<Sockets>().LargestLinkSize == 6)
+                if (Settings.Links && item.LargestLink >= Settings.LargestLink)
                     return true;
-                if (Settings.RGB && item.GetComponent<Sockets>().IsRGB)
+                if (Settings.RGB && item.IsRGB)
                     return true;
-                if (Settings.AllDivs && className == "DivinationCard")
+                if (Settings.AllDivs && item.ClassName == "DivinationCard")
                     return true;
-                if (Settings.AllCurrency && className == "StackableCurrency")
+                if (Settings.AllCurrency && item.ClassName == "StackableCurrency")
                     return true;
-                if (Settings.AllUniques && item.GetComponent<Mods>().ItemRarity == ItemRarity.Unique)
+                if (Settings.AllUniques && item.Rarity == ItemRarity.Unique)
                     return true;
-                if (Settings.Maps && item.GetComponent<Map>().Tier >= Settings.MapTier.Value)
+                if (Settings.Maps && item.MapTier >= Settings.MapTier.Value)
                     return true;
-                if (Settings.Maps && item.GetComponent<Map>().Tier >= Settings.MapTier.Value)
+                if (Settings.Maps && item.MapTier >= Settings.MapTier.Value)
                     return true;
-                if (Settings.Maps && Settings.MapFragments && className == "MapFragment")
+                if (Settings.Maps && Settings.MapFragments && item.ClassName == "MapFragment")
                     return true;
-                if (Settings.Maps && Settings.UniqueMap && item.GetComponent<Map>().Tier >= 1 &&
-                    item.GetComponent<Mods>().ItemRarity == ItemRarity.Unique)
+                if (Settings.Maps && Settings.UniqueMap && item.MapTier >= 1 &&
+                    item.Rarity == ItemRarity.Unique)
                     return true;
-                if (Settings.QuestItems && className == "QuestItem")
+                if (Settings.QuestItems && item.ClassName == "QuestItem")
                     return true;
-                if (Settings.Gems && item.GetComponent<Quality>().ItemQuality >= Settings.GemQuality.Value &&
-                    className.Contains("Skill Gem"))
+                if (Settings.Gems && item.Quality >= Settings.GemQuality.Value &&
+                    item.ClassName.Contains("Skill Gem"))
                     return true;
             }
             catch
@@ -332,13 +227,6 @@ namespace Pickit.Core
             return false;
         }
 
-        private void LoadCustomFilters()
-        {
-            var filterPath = Path.Combine(PluginDirectory, FitersConfigFile);
-            var filtersLines = File.ReadAllLines(filterPath);
-            var unused = new FilterParser();
-            _customFilters = FilterParser.Parse(filtersLines);
-        }
 
         public override void EntityAdded(EntityWrapper entityWrapper)
         {
@@ -350,29 +238,29 @@ namespace Pickit.Core
             _entities.Remove(entityWrapper);
         }
 
-        public bool DoWePickThis(ItemsOnGroundLabelElement itemEntity)
+        public bool DoWePickThis(CustomItem itemEntity)
         {
             var pickItemUp = false;
 
             if (Settings.PickUpEverything)
                 return true;
 
-            switch (itemEntity.ItemOnGround.GetComponent<WorldItem>().ItemEntity.GetComponent<Mods>().ItemRarity)
+            switch (itemEntity.Rarity)
             {
                 case ItemRarity.Normal:
-                    if (InListNormal(itemEntity))
+                    if (InCustomList(_normalRules,itemEntity, itemEntity.Rarity))
                         pickItemUp = true;
                     break;
                 case ItemRarity.Magic:
-                    if (InListMagic(itemEntity))
+                    if (InCustomList(_magicRules, itemEntity, itemEntity.Rarity))
                         pickItemUp = true;
                     break;
                 case ItemRarity.Rare:
-                    if (InListRare(itemEntity))
+                    if (InCustomList(_rareRules, itemEntity, itemEntity.Rarity))
                         pickItemUp = true;
                     break;
                 case ItemRarity.Unique:
-                    if (InListUnique(itemEntity))
+                    if (InCustomList(_uniqueRules, itemEntity, itemEntity.Rarity))
                         pickItemUp = true;
                     break;
             }
@@ -383,96 +271,20 @@ namespace Pickit.Core
             return pickItemUp;
         }
 
-        public bool DoWePickThisTest(ItemsOnGroundLabelElement itemEntity)
-        {
-            var pickItemUp = false;
-
-            switch (itemEntity.ItemOnGround.GetComponent<WorldItem>().ItemEntity.GetComponent<Mods>().ItemRarity)
-            {
-                case ItemRarity.Normal:
-                    if (InListNormal(itemEntity))
-                        pickItemUp = true;
-                    break;
-                case ItemRarity.Magic:
-                    if (InListMagic(itemEntity))
-                        pickItemUp = true;
-                    break;
-                case ItemRarity.Rare:
-                    if (InListRare(itemEntity))
-                        pickItemUp = true;
-                    break;
-                case ItemRarity.Unique:
-                    if (InListUnique(itemEntity))
-                        pickItemUp = true;
-                    break;
-            }
-
-            if (OverrideChecks(itemEntity))
-                pickItemUp = true;
-
-            return pickItemUp;
-        }
-
-        private void PickUpItemTest()
+        private void FindItemToPick()
         {
             if (_pickUpTimer.ElapsedMilliseconds < Settings.PickupTimerDelay)
             {
                 _working = false;
                 return;
             }
+
             _pickUpTimer.Restart();
 
             var currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabels
                 .Where(x => x.ItemOnGround.Path.ToLower().Contains("worlditem") && x.IsVisible &&
                             (x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds == 0))
-                .Select(x => new Tuple<int, ItemsOnGroundLabelElement>(GetEntityDistance(x.ItemOnGround), x))
-                .OrderBy(x => x.Item1)
-                .ToList();
-
-            LogMessage(currentLabels.Count, 10);
-
-
-            Tuple<int, ItemsOnGroundLabelElement> pickUpThisItem = null;
-            foreach (var x in currentLabels)
-                if (CheckFilters(new ItemData(x.Item2,
-                        GameController.Files.BaseItemTypes.Translate(x.Item2.ItemOnGround.Path))) != null &&
-                    x.Item1 < Settings.PickupRange)
-                {
-                    pickUpThisItem = x;
-                    break;
-                }
-
-            if (pickUpThisItem != null)
-            {
-                if (PickItem(pickUpThisItem)) return;
-            }
-            else if (Settings.GroundChests)
-            {
-                ClickOnChests();
-            }
-            _working = false;
-        }
-
-        private bool CheckFilters(ItemData itemData)
-        {
-            var result = _customFilters.Any(filter => filter.CompareItem(itemData));
-            LogMessage(result.ToString(), 10);
-            return result;
-        }
-
-        private void PickUpItem()
-        {
-            if (_pickUpTimer.ElapsedMilliseconds < Settings.PickupTimerDelay)
-            {
-                _working = false;
-                return;
-            }
-            _pickUpTimer.Restart();
-
-            var currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabels
-                .Where(x => x.ItemOnGround.Path.ToLower().Contains("worlditem") && x.IsVisible &&
-                            (x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds == 0))
-                .Select(x => new Tuple<int, ItemsOnGroundLabelElement>(GetEntityDistance(x.ItemOnGround), x))
+                .Select(x => new Tuple<int, CustomItem>(x.ItemOnGround.Distance, new CustomItem(x)))
                 .OrderBy(x => x.Item1)
                 .ToList();
 
@@ -484,37 +296,42 @@ namespace Pickit.Core
 
             if (pickUpThisItem != null)
             {
-                if (PickItem(pickUpThisItem)) return;
+                if (TryToPick(pickUpThisItem.Item2)) return;
             }
+
             else if (Settings.GroundChests)
             {
                 ClickOnChests();
             }
+
             _working = false;
         }
 
-        private bool PickItem(Tuple<int, ItemsOnGroundLabelElement> pickUpThisItem)
+        private bool TryToPick(CustomItem pickUpThisItem)
         {
-            if (pickUpThisItem.Item1 >= Settings.PickupRange)
+            if (pickUpThisItem.CompleteItem.ItemOnGround.Distance >= Settings.PickupRange)
             {
                 _working = false;
                 return true;
             }
-            var vect = pickUpThisItem.Item2.Label.GetClientRect().Center;
+
+            var vect = pickUpThisItem.CompleteItem.Label.GetClientRect().Center;
             var vectWindow = GameController.Window.GetWindowRectangle();
             if (vect.Y + PixelBorder > vectWindow.Bottom || vect.Y - PixelBorder < vectWindow.Top)
             {
                 _working = false;
                 return true;
             }
+
             if (vect.X + PixelBorder > vectWindow.Right || vect.X - PixelBorder < vectWindow.Left)
             {
                 _working = false;
                 return true;
             }
+
             _clickWindowOffset = GameController.Window.GetWindowRectangle().TopLeft;
 
-            var address = pickUpThisItem.Item2.ItemOnGround.GetComponent<Targetable>().Address;
+            var address = pickUpThisItem.CompleteItem.ItemOnGround.GetComponent<Targetable>().Address;
             var isTargeted = address != 0 && Memory.ReadByte(address + 0x2A) == 1;
 
             Mouse.SetCursorPos(vect + _clickWindowOffset);
@@ -541,9 +358,8 @@ namespace Pickit.Core
                     var chest = entity.GetComponent<Chest>();
                     if (chest.IsStrongbox) continue;
                     if (chest.IsOpened) continue;
-                    var d = GetEntityDistance(entity);
 
-                    var tuple = new Tuple<int, long, EntityWrapper>(d, entity.Address, entity);
+                    var tuple = new Tuple<int, long, EntityWrapper>(entity.Distance, entity.Address, entity);
                     if (sortedByDistChest.Any(x => x.Item2 == entity.Address)) continue;
 
                     sortedByDistChest.Add(tuple);
