@@ -25,15 +25,11 @@ namespace Pickit.Core
     public class Main : BaseSettingsPlugin<Settings>
     {
         private const int PixelBorder = 3;
-
         private const string PickitRuleDirectory = "Pickit Rules";
-
         private readonly List<EntityWrapper> _entities = new List<EntityWrapper>();
         private readonly Stopwatch _pickUpTimer = Stopwatch.StartNew();
-
         private Vector2 _clickWindowOffset;
         private HashSet<string> _magicRules;
-
         private HashSet<string> _normalRules;
         private HashSet<string> _rareRules;
         private HashSet<string> _uniqueRules;
@@ -61,12 +57,11 @@ namespace Pickit.Core
             Process = new Memory(GameController.Window.Process.Id);
         }
 
+        #region (Re)Loading Rules
         private void LoadRuleFiles()
         {
             var dirInfo = new DirectoryInfo(PickitConfigFileDirectory);
             var pickitFiles = dirInfo.GetFiles("*.txt").Select(x => Path.GetFileNameWithoutExtension(x.Name)).ToList();
-
-            //LoadCustomFilters();
 
             Settings.NormalRuleFile.SetListValues(pickitFiles);
             Settings.MagicRuleFile.SetListValues(pickitFiles);
@@ -99,25 +94,6 @@ namespace Pickit.Core
             _uniqueRules = LoadPickit(fileName);
         }
 
-        public override void Render()
-        {
-            //base.Render();
-
-            try
-            {
-                if (!Keyboard.IsKeyDown((int) Settings.PickUpKey.Value)) return;
-                if (_working)
-                    return;
-                _working = true;
-                FindItemToPick();
-                //PickUpItemTest();
-            }
-            catch
-            {
-                // ignored
-            }
-        }
-
         public HashSet<string> LoadPickit(string fileName)
         {
             var pickitFile = $@"{PluginDirectory}\{PickitRuleDirectory}\{fileName}.txt";
@@ -135,6 +111,26 @@ namespace Pickit.Core
             LogMessage($"PICKIT :: (Re)Loaded {fileName}", 5, Color.GreenYellow);
 
             return hashSet;
+        }
+        #endregion
+
+        public override void Render()
+        {
+            //base.Render();
+
+            try
+            {
+                if (!Keyboard.IsKeyDown((int) Settings.PickUpKey.Value)) return;
+                if (_working)
+                    return;
+                _working = true;
+                FindItemToPick();
+                //PickUpItemTest();
+            }
+            catch
+            {
+                // ignored
+            }
         }
 
         public bool InCustomList(HashSet<string> checkList , CustomItem itemEntity, ItemRarity rarity)
@@ -157,6 +153,7 @@ namespace Pickit.Core
         {
             try
             {
+                #region Shaper & Elder
                 if (Settings.ElderItems)
                     if (item.IsElder)
                         return true;
@@ -164,7 +161,9 @@ namespace Pickit.Core
                 if (Settings.ShaperItems)
                     if (item.IsShaper)
                         return true;
+                #endregion
 
+                #region Rare Overrides
                 if (Settings.Rares && item.Rarity == ItemRarity.Rare)
                 {
                     if (Settings.RareJewels && (item.ClassName == "Jewel" || item.ClassName == "AbyssJewel"))
@@ -191,33 +190,52 @@ namespace Pickit.Core
                         item.ItemLevel >= Settings.RareArmourilvl)
                         return true;
                 }
+                #endregion
 
+                #region Sockets/Links/RGB
                 if (Settings.Sockets && item.Sockets >= Settings.TotalSockets.Value)
                     return true;
                 if (Settings.Links && item.LargestLink >= Settings.LargestLink)
                     return true;
                 if (Settings.RGB && item.IsRGB)
                     return true;
+                #endregion
+                
+                #region Divination Cards
                 if (Settings.AllDivs && item.ClassName == "DivinationCard")
                     return true;
+                #endregion
+
+                #region Currency
                 if (Settings.AllCurrency && item.ClassName == "StackableCurrency")
                     return true;
-                if (Settings.AllUniques && item.Rarity == ItemRarity.Unique)
-                    return true;
+                #endregion
+
+                #region Maps
                 if (Settings.Maps && item.MapTier >= Settings.MapTier.Value)
-                    return true;
-                if (Settings.Maps && item.MapTier >= Settings.MapTier.Value)
-                    return true;
-                if (Settings.Maps && Settings.MapFragments && item.ClassName == "MapFragment")
                     return true;
                 if (Settings.Maps && Settings.UniqueMap && item.MapTier >= 1 &&
                     item.Rarity == ItemRarity.Unique)
                     return true;
+                if (Settings.Maps && Settings.MapFragments && item.ClassName == "MapFragment")
+                    return true;
+                #endregion
+
+                #region Quest Items
                 if (Settings.QuestItems && item.ClassName == "QuestItem")
                     return true;
+                #endregion
+
+                #region Skill Gems
                 if (Settings.Gems && item.Quality >= Settings.GemQuality.Value &&
                     item.ClassName.Contains("Skill Gem"))
                     return true;
+                #endregion
+
+                #region Uniques
+                if (Settings.AllUniques && item.Rarity == ItemRarity.Unique)
+                    return true;
+                #endregion
             }
             catch
             {
@@ -227,7 +245,7 @@ namespace Pickit.Core
             return false;
         }
 
-
+        #region Adding / Removing Entities
         public override void EntityAdded(EntityWrapper entityWrapper)
         {
             _entities.Add(entityWrapper);
@@ -237,18 +255,22 @@ namespace Pickit.Core
         {
             _entities.Remove(entityWrapper);
         }
+        #endregion
 
         public bool DoWePickThis(CustomItem itemEntity)
         {
             var pickItemUp = false;
 
+            #region Force Pickup All
             if (Settings.PickUpEverything)
                 return true;
+            #endregion
 
+            #region Rarity Rule Switch
             switch (itemEntity.Rarity)
             {
                 case ItemRarity.Normal:
-                    if (InCustomList(_normalRules,itemEntity, itemEntity.Rarity))
+                    if (InCustomList(_normalRules, itemEntity, itemEntity.Rarity))
                         pickItemUp = true;
                     break;
                 case ItemRarity.Magic:
@@ -264,9 +286,12 @@ namespace Pickit.Core
                         pickItemUp = true;
                     break;
             }
+            #endregion
 
+            #region Override Rules
             if (OverrideChecks(itemEntity))
                 pickItemUp = true;
+            #endregion
 
             return pickItemUp;
         }
