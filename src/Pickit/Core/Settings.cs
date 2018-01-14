@@ -8,56 +8,51 @@ namespace Pickit.Core
     {
         public Settings()
         {
-            PickUpKey = Keys.F1;
-            PickupRange = new RangeNode<int>(600, 1, 1000);
-            ChestRange = new RangeNode<int>(500, 1, 1000);
-            ExtraDelay = new RangeNode<int>(0, 0, 200);
-            PickupTimerDelay = new RangeNode<int>(124, 1, 200);
-            Sockets = true;
-            TotalSockets = new RangeNode<int>(6, 1, 6);
-            Links = true;
-            LargestLink = new RangeNode<int>(6, 1, 6);
-            RGB = true;
-            AllDivs = true;
-            AllCurrency = true;
-            AllUniques = true;
-            Maps = true;
-            UniqueMap = true;
-            MapFragments = true;
-            MapTier = new RangeNode<int>(1, 1, 16);
-            QuestItems = true;
-            Gems = true;
-            GemQuality = new RangeNode<int>(1, 0, 20);
-            GroundChests = false;
-
-            ShaperItems = true;
-            ElderItems = true;
-
-            Rares = true;
-            RareJewels = true;
-            RareRings = true;
-            RareRingsilvl = new RangeNode<int>(1, 0, 100);
-            RareAmulets = true;
-            RareAmuletsilvl = new RangeNode<int>(1, 0, 100);
-            RareBelts = true;
-            RareBeltsilvl = new RangeNode<int>(1, 0, 100);
-            RareGloves = false;
-            RareGlovesilvl = new RangeNode<int>(1, 0, 100);
-            RareBoots = false;
-            RareBootsilvl = new RangeNode<int>(1, 0, 100);
-            RareHelmets = false;
-            RareHelmetsilvl = new RangeNode<int>(1, 0, 100);
-            RareArmour = false;
-            RareArmourilvl = new RangeNode<int>(1, 0, 100);
-
-            PickUpEverything = false;
-
-            NormalRuleFile = new ListNode();
-            MagicRuleFile = new ListNode();
-            RareRuleFile = new ListNode();
-            UniqueRuleFile = new ListNode();
-            ReloadRules = new ButtonNode();
-
+            PickUpKey           = Keys.F1;
+            PickupRange         = new RangeNode<int>(600, 1, 1000);
+            ChestRange          = new RangeNode<int>(500, 1, 1000);
+            ExtraDelay          = new RangeNode<int>(0,   0, 200);
+            PickupTimerDelay    = new RangeNode<int>(124, 1, 200);
+            Sockets             = true;
+            TotalSockets        = new RangeNode<int>(6, 1, 6);
+            Links               = true;
+            LargestLink         = new RangeNode<int>(6, 1, 6);
+            RGB                 = true;
+            AllDivs             = true;
+            AllCurrency         = true;
+            AllUniques          = true;
+            Maps                = true;
+            UniqueMap           = true;
+            MapFragments        = true;
+            MapTier             = new RangeNode<int>(1, 1, 16);
+            QuestItems          = true;
+            Gems                = true;
+            GemQuality          = new RangeNode<int>(1, 0, 20);
+            GroundChests        = false;
+            ShaperItems         = true;
+            ElderItems          = true;
+            Rares               = true;
+            RareJewels          = true;
+            RareRings           = true;
+            RareRingsilvl       = new RangeNode<int>(1, 0, 100);
+            RareAmulets         = true;
+            RareAmuletsilvl     = new RangeNode<int>(1, 0, 100);
+            RareBelts           = true;
+            RareBeltsilvl       = new RangeNode<int>(1, 0, 100);
+            RareGloves          = false;
+            RareGlovesilvl      = new RangeNode<int>(1, 0, 100);
+            RareBoots           = false;
+            RareBootsilvl       = new RangeNode<int>(1, 0, 100);
+            RareHelmets         = false;
+            RareHelmetsilvl     = new RangeNode<int>(1, 0, 100);
+            RareArmour          = false;
+            RareArmourilvl      = new RangeNode<int>(1, 0, 100);
+            PickUpEverything    = false;
+            NormalRuleFile      = new ListNode();
+            MagicRuleFile       = new ListNode();
+            RareRuleFile        = new ListNode();
+            UniqueRuleFile      = new ListNode();
+            ReloadRules         = new ButtonNode();
             LeftClickToggleNode = true;
         }
 
@@ -76,7 +71,7 @@ namespace Pickit.Core
         [Menu("Unique", 12315, 23443)]
         public ListNode UniqueRuleFile { get; set; }
 
-        [Menu("Reload All Rules", 3264, 23443)]
+        [Menu("Reload Rules", 3264, 23443)]
         public ButtonNode ReloadRules { get; set; }
 
         [Menu("Pickup Key")]
@@ -162,7 +157,7 @@ namespace Pickit.Core
 
         [Menu("Largest Link", 234331, 23433)]
         public RangeNode<int> LargestLink { get; set; }
-         
+
         [Menu("RGB", 23431, 5435)]
         public ToggleNode RGB { get; set; }
 
@@ -207,6 +202,5 @@ namespace Pickit.Core
 
         [Menu("Click Type", "On: Left Click\nOff: Right Click")]
         public ToggleNode LeftClickToggleNode { get; set; }
-
     }
 }
