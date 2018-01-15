@@ -218,8 +218,14 @@ namespace Pickit.Core
             }
 
             _pickUpTimer.Restart();
-            List<Tuple<int, CustomItem>> currentLabels  = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabels.Where(x => x.ItemOnGround.Path.ToLower().Contains("worlditem") && x.IsVisible && (x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds == 0)).Select(x => new Tuple<int, CustomItem>(x.ItemOnGround.Distance, new CustomItem(x))).OrderBy(x => x.Item1).ToList();
-            Tuple<int, CustomItem>       pickUpThisItem = (from x in currentLabels where DoWePickThis(x.Item2) && x.Item1 < Settings.PickupRange select x).FirstOrDefault();
+            List<Tuple<int, CustomItem>> currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabels
+                                                                       .Where(x => x.ItemOnGround.Path.ToLower().Contains("worlditem")
+                                                                                && x.IsVisible
+                                                                                && (x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds == 0))
+                                                                       .Select(x => new Tuple<int, CustomItem>(Misc.EntityDistance(x.ItemOnGround), new CustomItem(x)))
+                                                                       .OrderBy(x => x.Item1)
+                                                                       .ToList();
+            Tuple<int, CustomItem> pickUpThisItem = (from x in currentLabels where DoWePickThis(x.Item2) && x.Item1 < Settings.PickupRange select x).FirstOrDefault();
             if (pickUpThisItem != null)
             {
                 if (TryToPick(pickUpThisItem.Item2)) return;
@@ -232,7 +238,7 @@ namespace Pickit.Core
 
         private bool TryToPick(CustomItem pickUpThisItem)
         {
-            if (pickUpThisItem.CompleteItem.ItemOnGround.Distance >= Settings.PickupRange)
+            if (Misc.EntityDistance(pickUpThisItem.CompleteItem.ItemOnGround) >= Settings.PickupRange)
             {
                 _working = false;
                 return true;
@@ -275,7 +281,7 @@ namespace Pickit.Core
                     Chest chest = entity.GetComponent<Chest>();
                     if (chest.IsStrongbox) continue;
                     if (chest.IsOpened) continue;
-                    Tuple<int, long, EntityWrapper> tuple = new Tuple<int, long, EntityWrapper>(entity.Distance, entity.Address, entity);
+                    Tuple<int, long, EntityWrapper> tuple = new Tuple<int, long, EntityWrapper>(Misc.EntityDistance(entity), entity.Address, entity);
                     if (sortedByDistChest.Any(x => x.Item2 == entity.Address)) continue;
                     sortedByDistChest.Add(tuple);
                 }
