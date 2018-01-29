@@ -12,31 +12,36 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using ImGuiNET;
 using Pickit.Utilities;
 using PoeHUD.Framework.Helpers;
 using PoeHUD.Models;
 using PoeHUD.Models.Enums;
 using PoeHUD.Plugins;
 using PoeHUD.Poe.Components;
-using PoeHUD.Poe.RemoteMemoryObjects;
 using SharpDX;
 
 namespace Pickit.Core
 {
     public class Main : BaseSettingsPlugin<Settings>
     {
-        private const    int                 PixelBorder         = 3;
-        private const    string              PickitRuleDirectory = "Pickit Rules";
-        private readonly List<EntityWrapper> _entities           = new List<EntityWrapper>();
-        private readonly Stopwatch           _pickUpTimer        = Stopwatch.StartNew();
-        private          Vector2             _clickWindowOffset;
-        private          HashSet<string>     _magicRules;
-        private          HashSet<string>     _normalRules;
-        private          HashSet<string>     _rareRules;
-        private          HashSet<string>     _uniqueRules;
-        private          bool                _working;
+        private const int PixelBorder = 3;
+        private const string PickitRuleDirectory = "Pickit Rules";
+        private readonly List<EntityWrapper> _entities = new List<EntityWrapper>();
+        private readonly Stopwatch _pickUpTimer = Stopwatch.StartNew();
+        private Vector2 _clickWindowOffset;
+        private HashSet<string> _magicRules;
+        private HashSet<string> _normalRules;
+        private HashSet<string> _rareRules;
+        private HashSet<string> _uniqueRules;
+        private bool _working;
+        public string MagicRuleFile;
+        public string NormalRuleFile;
+        public string RareRuleFile;
+        public string UniqueRuleFile;
 
         public Main() => PluginName = "Pickit";
+        private List<string> PickitFiles { get; set; }
 
         private string PickitConfigFileDirectory => LocalPluginDirectory + @"\" + PickitRuleDirectory;
 
@@ -44,28 +49,124 @@ namespace Pickit.Core
 
         public override void Initialise()
         {
-            Settings.NormalRuleFile.OnValueSelected += ReloadRuleOnSelectNormal;
-            Settings.MagicRuleFile.OnValueSelected  += ReloadRuleOnSelectMagic;
-            Settings.RareRuleFile.OnValueSelected   += ReloadRuleOnSelectRare;
-            Settings.UniqueRuleFile.OnValueSelected += ReloadRuleOnSelectUnique;
-            Settings.ReloadRules.OnPressed          += LoadRuleFiles;
             LoadRuleFiles();
             Process = new Memory(GameController.Window.Process.Id);
+        }
+        
+        private void ImGuiMenu()
+        {
+            if (!Settings.ShowWindow) return;
+            ImGuiExtension.BeginWindow($"{PluginName} Settings", Settings.LastSettingPos.X, Settings.LastSettingPos.Y, Settings.LastSettingSize.X, Settings.LastSettingSize.Y);
+            Settings.PickUpKey = ImGuiExtension.HotkeySelector("Pickup Key", Settings.PickUpKey);
+            Settings.LeftClickToggleNode.Value = ImGuiExtension.Checkbox("Mouse Button: " + (Settings.LeftClickToggleNode ? "Left" : "Right"), Settings.LeftClickToggleNode);
+            Settings.GroundChests.Value = ImGuiExtension.Checkbox("Click Chests If No Items Around", Settings.GroundChests);
+            Settings.PickupRange.Value = ImGuiExtension.IntSlider("Pickup Radius", Settings.PickupRange);
+            Settings.ChestRange.Value = ImGuiExtension.IntSlider("Chest Radius", Settings.ChestRange);
+            Settings.ExtraDelay.Value = ImGuiExtension.IntSlider("Extra Click Delay", Settings.ExtraDelay);
+            Settings.PickupTimerDelay.Value = ImGuiExtension.IntSlider("Pickup Delay", Settings.PickupTimerDelay);
+            if (ImGui.CollapsingHeader("Pickit Rules", TreeNodeFlags.Framed))
+            {
+                if (ImGui.Button("Reload All Files")) LoadRuleFiles();
+                Settings.NormalRuleFile = ImGuiExtension.ComboBox("Normal Rules", Settings.NormalRuleFile, PickitFiles, out var tempRef);
+                if (tempRef) _normalRules = LoadPickit(Settings.NormalRuleFile);
+                Settings.MagicRuleFile = ImGuiExtension.ComboBox("Magic Rules", Settings.MagicRuleFile, PickitFiles, out tempRef);
+                if (tempRef) _magicRules = LoadPickit(Settings.MagicRuleFile);
+                Settings.RareRuleFile = ImGuiExtension.ComboBox("Rare Rules", Settings.RareRuleFile, PickitFiles, out tempRef);
+                if (tempRef) _rareRules = LoadPickit(Settings.RareRuleFile);
+                Settings.UniqueRuleFile = ImGuiExtension.ComboBox("Unique Rules", Settings.UniqueRuleFile, PickitFiles, out tempRef);
+                if (tempRef) _uniqueRules = LoadPickit(Settings.UniqueRuleFile);
+            }
+
+            if (ImGui.CollapsingHeader("Item Logic", TreeNodeFlags.Framed))
+            {
+                Settings.ShaperItems.Value = ImGuiExtension.Checkbox("Pickup Shaper Items", Settings.ShaperItems);
+                ImGui.SameLine();
+                Settings.ElderItems.Value = ImGuiExtension.Checkbox("Pickup Elder Items", Settings.ElderItems);
+                if (ImGui.TreeNode("Links/Sockets/RGB"))
+                {
+                    Settings.RGB.Value = ImGuiExtension.Checkbox("RGB Items", Settings.RGB);
+                    Settings.TotalSockets.Value = ImGuiExtension.IntSlider("##Sockets", Settings.TotalSockets);
+                    ImGui.SameLine();
+                    Settings.Sockets.Value = ImGuiExtension.Checkbox("Sockets", Settings.Sockets);
+                    Settings.LargestLink.Value = ImGuiExtension.IntSlider("##Links", Settings.LargestLink);
+                    ImGui.SameLine();
+                    Settings.Links.Value = ImGuiExtension.Checkbox("Links", Settings.Links);
+                    ImGui.Separator();
+                    ImGui.TreePop();
+                }
+
+                if (ImGui.TreeNode("Overrides"))
+                {
+                    Settings.PickUpEverything.Value = ImGuiExtension.Checkbox("Pickup Everything", Settings.PickUpEverything);
+                    Settings.AllDivs.Value = ImGuiExtension.Checkbox("All Divination Cards", Settings.AllDivs);
+                    Settings.AllCurrency.Value = ImGuiExtension.Checkbox("All Currency", Settings.AllCurrency);
+                    Settings.AllUniques.Value = ImGuiExtension.Checkbox("All Uniques", Settings.AllUniques);
+                    Settings.QuestItems.Value = ImGuiExtension.Checkbox("Quest Items", Settings.QuestItems);
+                    Settings.Maps.Value = ImGuiExtension.Checkbox("##Maps", Settings.Maps);
+                    ImGui.SameLine();
+                    if (ImGui.TreeNode("Maps"))
+                    {
+                        Settings.MapTier.Value = ImGuiExtension.IntSlider("Lowest Tier", Settings.MapTier);
+                        Settings.UniqueMap.Value = ImGuiExtension.Checkbox("All Unique Maps", Settings.UniqueMap);
+                        Settings.MapFragments.Value = ImGuiExtension.Checkbox("Fragments", Settings.MapFragments);
+                        ImGui.Spacing();
+                        ImGui.TreePop();
+                    }
+
+                    Settings.GemQuality.Value = ImGuiExtension.IntSlider("##Gems", "Lowest Quality", Settings.GemQuality);
+                    ImGui.SameLine();
+                    Settings.Gems.Value = ImGuiExtension.Checkbox("Gems", Settings.Gems);
+                    ImGui.Separator();
+                    ImGui.TreePop();
+                }
+
+                Settings.Rares.Value = ImGuiExtension.Checkbox("##Rares", Settings.Rares);
+                ImGui.SameLine();
+                if (ImGui.TreeNode("Rares"))
+                {
+                    Settings.RareJewels.Value = ImGuiExtension.Checkbox("Jewels", Settings.RareJewels);
+                    Settings.RareRingsilvl.Value = ImGuiExtension.IntSlider("##RareRings", "Lowest iLvl", Settings.RareRingsilvl);
+                    ImGui.SameLine();
+                    Settings.RareRings.Value = ImGuiExtension.Checkbox("Rings", Settings.RareRings);
+                    Settings.RareAmuletsilvl.Value = ImGuiExtension.IntSlider("##RareAmulets", "Lowest iLvl", Settings.RareAmuletsilvl);
+                    ImGui.SameLine();
+                    Settings.RareAmulets.Value = ImGuiExtension.Checkbox("Amulets", Settings.RareAmulets);
+                    Settings.RareBeltsilvl.Value = ImGuiExtension.IntSlider("##RareBelts", "Lowest iLvl", Settings.RareBeltsilvl);
+                    ImGui.SameLine();
+                    Settings.RareBelts.Value = ImGuiExtension.Checkbox("Belts", Settings.RareBelts);
+                    Settings.RareGlovesilvl.Value = ImGuiExtension.IntSlider("##RareGloves", "Lowest iLvl", Settings.RareGlovesilvl);
+                    ImGui.SameLine();
+                    Settings.RareGloves.Value = ImGuiExtension.Checkbox("Gloves", Settings.RareGloves);
+                    Settings.RareBootsilvl.Value = ImGuiExtension.IntSlider("##RareBoots", "Lowest iLvl", Settings.RareBootsilvl);
+                    ImGui.SameLine();
+                    Settings.RareBoots.Value = ImGuiExtension.Checkbox("Boots", Settings.RareBoots);
+                    Settings.RareHelmetsilvl.Value = ImGuiExtension.IntSlider("##RareHelmets", "Lowest iLvl", Settings.RareHelmetsilvl);
+                    ImGui.SameLine();
+                    Settings.RareHelmets.Value = ImGuiExtension.Checkbox("Helmets", Settings.RareHelmets);
+                    Settings.RareArmourilvl.Value = ImGuiExtension.IntSlider("##RareArmours", "Lowest iLvl", Settings.RareArmourilvl);
+                    ImGui.SameLine();
+                    Settings.RareArmour.Value = ImGuiExtension.Checkbox("Armours", Settings.RareArmour);
+                    ImGui.TreePop();
+                }
+            }
+
+            // Storing window Position and Size changed by the user
+            Settings.LastSettingPos = ImGui.GetWindowPosition();
+            Settings.LastSettingSize = ImGui.GetWindowSize();
+            ImGui.EndWindow();
         }
 
         public override void Render()
         {
-            //base.Render();
+            ImGuiMenu();
             try
             {
                 if (!Keyboard.IsKeyDown((int) Settings.PickUpKey.Value)) return;
                 if (_working) return;
                 _working = true;
                 FindItemToPick();
-                //PickUpItemTest();
             }
-            catch
-            {
+            catch {
                 // ignored
             }
         }
@@ -76,8 +177,7 @@ namespace Pickit.Core
             {
                 if (checkList.Contains(itemEntity.BaseName) && itemEntity.Rarity == rarity) return true;
             }
-            catch
-            {
+            catch {
                 // ignored
             }
 
@@ -172,7 +272,7 @@ namespace Pickit.Core
 
         public bool DoWePickThis(CustomItem itemEntity)
         {
-            bool pickItemUp = false;
+            var pickItemUp = false;
 
             #region Force Pickup All
 
@@ -218,14 +318,12 @@ namespace Pickit.Core
             }
 
             _pickUpTimer.Restart();
-            List<Tuple<int, CustomItem>> currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabels
-                                                                       .Where(x => x.ItemOnGround.Path.ToLower().Contains("worlditem")
-                                                                                && x.IsVisible
-                                                                                && (x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds == 0))
-                                                                       .Select(x => new Tuple<int, CustomItem>(Misc.EntityDistance(x.ItemOnGround), new CustomItem(x)))
-                                                                       .OrderBy(x => x.Item1)
-                                                                       .ToList();
-            Tuple<int, CustomItem> pickUpThisItem = (from x in currentLabels where DoWePickThis(x.Item2) && x.Item1 < Settings.PickupRange select x).FirstOrDefault();
+            var currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabels
+                                              .Where(x => x.ItemOnGround.Path.ToLower().Contains("worlditem") && x.IsVisible && (x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds == 0))
+                                              .Select(x => new Tuple<int, CustomItem>(Misc.EntityDistance(x.ItemOnGround), new CustomItem(x)))
+                                              .OrderBy(x => x.Item1)
+                                              .ToList();
+            var pickUpThisItem = (from x in currentLabels where DoWePickThis(x.Item2) && x.Item1 < Settings.PickupRange select x).FirstOrDefault();
             if (pickUpThisItem != null)
             {
                 if (TryToPick(pickUpThisItem.Item2)) return;
@@ -244,8 +342,8 @@ namespace Pickit.Core
                 return true;
             }
 
-            Vector2    vect       = pickUpThisItem.CompleteItem.Label.GetClientRect().Center;
-            RectangleF vectWindow = GameController.Window.GetWindowRectangle();
+            var vect = pickUpThisItem.CompleteItem.Label.GetClientRect().Center;
+            var vectWindow = GameController.Window.GetWindowRectangle();
             if (vect.Y + PixelBorder > vectWindow.Bottom || vect.Y - PixelBorder < vectWindow.Top)
             {
                 _working = false;
@@ -259,8 +357,8 @@ namespace Pickit.Core
             }
 
             _clickWindowOffset = GameController.Window.GetWindowRectangle().TopLeft;
-            long address       = pickUpThisItem.CompleteItem.ItemOnGround.GetComponent<Targetable>().Address;
-            bool isTargeted    = address != 0 && Memory.ReadByte(address + 0x2A) == 1;
+            var address = pickUpThisItem.CompleteItem.ItemOnGround.GetComponent<Targetable>().Address;
+            var isTargeted = address != 0 && Memory.ReadByte(address + 0x2A) == 1;
             Mouse.SetCursorPos(vect + _clickWindowOffset);
             if (!isTargeted) return false;
             if (Settings.LeftClickToggleNode)
@@ -273,24 +371,24 @@ namespace Pickit.Core
         // Copy-Paste - Qvin0000's version
         private void ClickOnChests()
         {
-            List<Tuple<int, long, EntityWrapper>> sortedByDistChest = new List<Tuple<int, long, EntityWrapper>>();
-            foreach (EntityWrapper entity in _entities)
+            var sortedByDistChest = new List<Tuple<int, long, EntityWrapper>>();
+            foreach (var entity in _entities)
                 if (entity.Path.ToLower().Contains("chests") && entity.IsAlive && entity.IsHostile)
                 {
                     if (!entity.HasComponent<Chest>()) continue;
-                    Chest chest = entity.GetComponent<Chest>();
+                    var chest = entity.GetComponent<Chest>();
                     if (chest.IsStrongbox) continue;
                     if (chest.IsOpened) continue;
-                    Tuple<int, long, EntityWrapper> tuple = new Tuple<int, long, EntityWrapper>(Misc.EntityDistance(entity), entity.Address, entity);
+                    var tuple = new Tuple<int, long, EntityWrapper>(Misc.EntityDistance(entity), entity.Address, entity);
                     if (sortedByDistChest.Any(x => x.Item2 == entity.Address)) continue;
                     sortedByDistChest.Add(tuple);
                 }
 
-            List<Tuple<int, long, EntityWrapper>> tempList = sortedByDistChest.OrderBy(x => x.Item1).ToList();
+            var tempList = sortedByDistChest.OrderBy(x => x.Item1).ToList();
             if (tempList.Count <= 0) return;
             if (tempList[0].Item1 >= Settings.ChestRange) return;
             SetCursorToEntityAndClick(tempList[0].Item3);
-            Vector2 centerScreen = GameController.Window.GetWindowRectangle().Center;
+            var centerScreen = GameController.Window.GetWindowRectangle().Center;
             Mouse.SetCursorPos(centerScreen);
             _working = false;
         }
@@ -298,11 +396,11 @@ namespace Pickit.Core
         //Copy-Paste - Sithylis_QoL
         private void SetCursorToEntityAndClick(EntityWrapper entity)
         {
-            Camera  camera            = GameController.Game.IngameState.Camera;
-            Vector2 chestScreenCoords = camera.WorldToScreen(entity.Pos.Translate(0, 0, 0), entity);
+            var camera = GameController.Game.IngameState.Camera;
+            var chestScreenCoords = camera.WorldToScreen(entity.Pos.Translate(0, 0, 0), entity);
             if (chestScreenCoords == new Vector2()) return;
-            Point   pos    = Mouse.GetCursorPosition();
-            Vector2 coords = new Vector2(chestScreenCoords.X, chestScreenCoords.Y);
+            var pos = Mouse.GetCursorPosition();
+            var coords = new Vector2(chestScreenCoords.X, chestScreenCoords.Y);
             Mouse.SetCursorPosAndLeftOrRightClick(coords, 100, Settings.LeftClickToggleNode.Value);
             Mouse.SetCursorPos(pos.X, pos.Y);
         }
@@ -311,32 +409,21 @@ namespace Pickit.Core
 
         private void LoadRuleFiles()
         {
-            DirectoryInfo dirInfo     = new DirectoryInfo(PickitConfigFileDirectory);
-            List<string>  pickitFiles = dirInfo.GetFiles("*.txt").Select(x => Path.GetFileNameWithoutExtension(x.Name)).ToList();
-            Settings.NormalRuleFile.SetListValues(pickitFiles);
-            Settings.MagicRuleFile.SetListValues(pickitFiles);
-            Settings.RareRuleFile.SetListValues(pickitFiles);
-            Settings.UniqueRuleFile.SetListValues(pickitFiles);
-            _normalRules = LoadPickit(Settings.NormalRuleFile.Value);
-            _magicRules  = LoadPickit(Settings.MagicRuleFile.Value);
-            _rareRules   = LoadPickit(Settings.RareRuleFile.Value);
-            _uniqueRules = LoadPickit(Settings.UniqueRuleFile.Value);
+            var dirInfo = new DirectoryInfo(PickitConfigFileDirectory);
+            PickitFiles = dirInfo.GetFiles("*.txt").Select(x => Path.GetFileNameWithoutExtension(x.Name)).ToList();
+            _normalRules = LoadPickit(Settings.NormalRuleFile);
+            _magicRules = LoadPickit(Settings.MagicRuleFile);
+            _rareRules = LoadPickit(Settings.RareRuleFile);
+            _uniqueRules = LoadPickit(Settings.UniqueRuleFile);
         }
-
-        private void ReloadRuleOnSelectNormal(string fileName) { _normalRules = LoadPickit(fileName); }
-
-        private void ReloadRuleOnSelectMagic(string fileName) { _magicRules = LoadPickit(fileName); }
-
-        private void ReloadRuleOnSelectRare(string fileName) { _rareRules = LoadPickit(fileName); }
-
-        private void ReloadRuleOnSelectUnique(string fileName) { _uniqueRules = LoadPickit(fileName); }
 
         public HashSet<string> LoadPickit(string fileName)
         {
-            string pickitFile = $@"{PluginDirectory}\{PickitRuleDirectory}\{fileName}.txt";
+            if (fileName == string.Empty) return null;
+            var pickitFile = $@"{PluginDirectory}\{PickitRuleDirectory}\{fileName}.txt";
             if (!File.Exists(pickitFile)) return null;
-            HashSet<string> hashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            string[]        lines   = File.ReadAllLines(pickitFile);
+            var hashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var lines = File.ReadAllLines(pickitFile);
             lines.Where(x => !string.IsNullOrWhiteSpace(x) && !x.StartsWith("#")).ForEach(x => hashSet.Add(x.Trim().ToLowerInvariant()));
             LogMessage($"PICKIT :: (Re)Loaded {fileName}", 5, Color.GreenYellow);
             return hashSet;
