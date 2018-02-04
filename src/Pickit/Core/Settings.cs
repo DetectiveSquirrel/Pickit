@@ -49,6 +49,8 @@ namespace Pickit.Core
             RareHelmetsilvl = new RangeNode<int>(1, 0, 100);
             RareArmour = false;
             RareArmourilvl = new RangeNode<int>(1, 0, 100);
+            RareWeapon = false;
+            RareWeaponilvl = new RangeNode<int>(1, 0, 100);
             PickUpEverything = false;
             NormalRuleFile = string.Empty;
             MagicRuleFile = string.Empty;
@@ -84,6 +86,8 @@ namespace Pickit.Core
         public RangeNode<int> RareHelmetsilvl { get; set; }
         public ToggleNode RareArmour { get; set; }
         public RangeNode<int> RareArmourilvl { get; set; }
+        public ToggleNode RareWeapon { get; set; }
+        public RangeNode<int> RareWeaponilvl { get; set; }
         public EmptyNode LinkSocketRgbEmptyNode { get; set; }
         public ToggleNode Sockets { get; set; }
         public RangeNode<int> TotalSockets { get; set; }
