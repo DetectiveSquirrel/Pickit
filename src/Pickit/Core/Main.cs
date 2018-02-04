@@ -146,6 +146,9 @@ namespace Pickit.Core
                     Settings.RareArmourilvl.Value = ImGuiExtension.IntSlider("##RareArmours", "Lowest iLvl", Settings.RareArmourilvl);
                     ImGui.SameLine();
                     Settings.RareArmour.Value = ImGuiExtension.Checkbox("Armours", Settings.RareArmour);
+                    Settings.RareWeaponilvl.Value = ImGuiExtension.IntSlider("##RareWeapons", "Lowest iLvl", Settings.RareWeaponilvl);
+                    ImGui.SameLine();
+                    Settings.RareWeapon.Value = ImGuiExtension.Checkbox("Weapons", Settings.RareWeapon);
                     ImGui.TreePop();
                 }
             }
@@ -212,6 +215,7 @@ namespace Pickit.Core
                     if (Settings.RareBoots && item.ClassName == "Boots" && item.ItemLevel >= Settings.RareBootsilvl) return true;
                     if (Settings.RareHelmets && item.ClassName == "Helmet" && item.ItemLevel >= Settings.RareHelmetsilvl) return true;
                     if (Settings.RareArmour && item.ClassName == "Body Armour" && item.ItemLevel >= Settings.RareArmourilvl) return true;
+                    if (Settings.RareWeapon && (item.ClassName == "Dagger" || item.ClassName == "Wand") && item.ItemLevel >= Settings.RareWeaponilvl) return true;
                 }
 
                 #endregion
