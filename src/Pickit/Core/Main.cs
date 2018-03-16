@@ -53,18 +53,18 @@ namespace Pickit.Core
             Process = new Memory(GameController.Window.Process.Id);
         }
         
-        private void ImGuiMenu()
+        public override void DrawSettingsMenu()
         {
-            if (!Settings.ShowWindow) return;
-            ImGuiExtension.BeginWindow($"{PluginName} Settings", Settings.LastSettingPos.X, Settings.LastSettingPos.Y, Settings.LastSettingSize.X, Settings.LastSettingSize.Y);
             Settings.PickUpKey = ImGuiExtension.HotkeySelector("Pickup Key", Settings.PickUpKey);
             Settings.LeftClickToggleNode.Value = ImGuiExtension.Checkbox("Mouse Button: " + (Settings.LeftClickToggleNode ? "Left" : "Right"), Settings.LeftClickToggleNode);
             Settings.GroundChests.Value = ImGuiExtension.Checkbox("Click Chests If No Items Around", Settings.GroundChests);
             Settings.PickupRange.Value = ImGuiExtension.IntSlider("Pickup Radius", Settings.PickupRange);
             Settings.ChestRange.Value = ImGuiExtension.IntSlider("Chest Radius", Settings.ChestRange);
             Settings.ExtraDelay.Value = ImGuiExtension.IntSlider("Extra Click Delay", Settings.ExtraDelay);
-            Settings.PickupTimerDelay.Value = ImGuiExtension.IntSlider("Pickup Delay", Settings.PickupTimerDelay);
-            if (ImGui.CollapsingHeader("Pickit Rules", TreeNodeFlags.Framed))
+            Settings.ClickItemTimerDelay.Value = ImGuiExtension.IntSlider("Pickup Delay", Settings.ClickItemTimerDelay);
+            //Settings.OverrideItemPickup.Value = ImGuiExtension.Checkbox("Item Pickup Override", Settings.OverrideItemPickup); ImGui.SameLine();
+            //ImGuiExtension.ToolTip("Override item.CanPickup\n\rDO NOT enable this unless you know what you're doing!");
+            if (ImGui.CollapsingHeader("Pickit Rules", TreeNodeFlags.Framed | TreeNodeFlags.DefaultOpen))
             {
                 if (ImGui.Button("Reload All Files")) LoadRuleFiles();
                 Settings.NormalRuleFile = ImGuiExtension.ComboBox("Normal Rules", Settings.NormalRuleFile, PickitFiles, out var tempRef);
@@ -77,7 +77,7 @@ namespace Pickit.Core
                 if (tempRef) _uniqueRules = LoadPickit(Settings.UniqueRuleFile);
             }
 
-            if (ImGui.CollapsingHeader("Item Logic", TreeNodeFlags.Framed))
+            if (ImGui.CollapsingHeader("Item Logic", TreeNodeFlags.Framed | TreeNodeFlags.DefaultOpen))
             {
                 Settings.ShaperItems.Value = ImGuiExtension.Checkbox("Pickup Shaper Items", Settings.ShaperItems);
                 ImGui.SameLine();
@@ -149,16 +149,10 @@ namespace Pickit.Core
                     ImGui.TreePop();
                 }
             }
-
-            // Storing window Position and Size changed by the user
-            Settings.LastSettingPos = ImGui.GetWindowPosition();
-            Settings.LastSettingSize = ImGui.GetWindowSize();
-            ImGui.EndWindow();
         }
 
         public override void Render()
         {
-            ImGuiMenu();
             try
             {
                 if (!Keyboard.IsKeyDown((int) Settings.PickUpKey.Value)) return;
@@ -311,15 +305,7 @@ namespace Pickit.Core
 
         private void FindItemToPick()
         {
-            if (_pickUpTimer.ElapsedMilliseconds < Settings.PickupTimerDelay)
-            {
-                _working = false;
-                return;
-            }
-
-            _pickUpTimer.Restart();
-            var currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabels
-                                              .Where(x => x.ItemOnGround.Path.ToLower().Contains("worlditem") && x.IsVisible && (x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds == 0))
+            var currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabels.Where(x => x.ItemOnGround.Path.ToLower().Contains("worlditem") && x.IsVisible && (x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds <= 0))
                                               .Select(x => new Tuple<int, CustomItem>(Misc.EntityDistance(x.ItemOnGround), new CustomItem(x)))
                                               .OrderBy(x => x.Item1)
                                               .ToList();
@@ -361,6 +347,12 @@ namespace Pickit.Core
             var isTargeted = address != 0 && Memory.ReadByte(address + 0x2A) == 1;
             Mouse.SetCursorPos(vect + _clickWindowOffset);
             if (!isTargeted) return false;
+            if (_pickUpTimer.ElapsedMilliseconds < Settings.ClickItemTimerDelay)
+            {
+                _working = false;
+                return false;
+            }
+            _pickUpTimer.Restart();
             if (Settings.LeftClickToggleNode)
                 Mouse.LeftClick(Settings.ExtraDelay);
             else

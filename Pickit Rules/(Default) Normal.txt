@@ -11,6 +11,20 @@ Mirror of Kalandra
 Albino Rhoa Feather
 Perandus Coin
 
+# Nets #
+Bestiary Orb
+Imprinted Bestiary Orb
+Reinforced Iron Net
+Reinforced Rope Net
+Reinforced Steel Net
+Simple Iron Net
+Simple Rope Net
+Simple Steel Net
+Strong Iron Net
+Strong Rope Net
+Strong Steel Net
+Thaumaturgical Net
+
 # Sextants
 Journeyman Cartographer's Sextant
 Master Cartographer's Sextant

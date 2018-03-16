@@ -14,7 +14,7 @@ namespace Pickit.Core
             PickupRange = new RangeNode<int>(600, 1, 1000);
             ChestRange = new RangeNode<int>(500, 1, 1000);
             ExtraDelay = new RangeNode<int>(0, 0, 200);
-            PickupTimerDelay = new RangeNode<int>(124, 1, 200);
+            ClickItemTimerDelay = new RangeNode<int>(124, 1, 200);
             Sockets = true;
             TotalSockets = new RangeNode<int>(6, 1, 6);
             Links = true;
@@ -55,7 +55,7 @@ namespace Pickit.Core
             RareRuleFile = string.Empty;
             UniqueRuleFile = string.Empty;
             LeftClickToggleNode = true;
-            ShowWindow = false;
+            OverrideItemPickup = false;
 
             LastSettingSize = new ImGuiVector2(620, 376);
             LastSettingPos = new ImGuiVector2(centerPos.X - LastSettingSize.X / 2,centerPos.Y - LastSettingSize.Y / 2);
@@ -65,7 +65,7 @@ namespace Pickit.Core
         public RangeNode<int> PickupRange { get; set; }
         public RangeNode<int> ChestRange { get; set; }
         public RangeNode<int> ExtraDelay { get; set; }
-        public RangeNode<int> PickupTimerDelay { get; set; }
+        public RangeNode<int> ClickItemTimerDelay { get; set; }
         public ToggleNode ShaperItems { get; set; }
         public ToggleNode ElderItems { get; set; }
         public ToggleNode Rares { get; set; }
@@ -104,6 +104,7 @@ namespace Pickit.Core
         public ToggleNode QuestItems { get; set; }
         public ToggleNode GroundChests { get; set; }
         public ToggleNode LeftClickToggleNode { get; set; }
+        public ToggleNode OverrideItemPickup { get; set; }
 
         public string NormalRuleFile { get; set; }
         public string MagicRuleFile { get; set; }
@@ -112,8 +113,5 @@ namespace Pickit.Core
 
         public ImGuiVector2 LastSettingPos { get; set; }
         public ImGuiVector2 LastSettingSize { get; set; }
-
-        [Menu("Show ImGui Settings")]
-        public ToggleNode ShowWindow { get; set; }
     }
 }
