@@ -1,4 +1,5 @@
-﻿using PoeHUD.Models;
+﻿using System.Collections.Generic;
+using System.Linq;
 using PoeHUD.Models.Enums;
 using PoeHUD.Plugins;
 using PoeHUD.Poe;
@@ -11,60 +12,86 @@ namespace Pickit.Core
 {
     public class CustomItem
     {
-        public string                    BaseName;
-        public string                    ClassName;
+        public string BaseName;
+        public string ClassName;
         public ItemsOnGroundLabelElement CompleteItem;
-        public Entity                    GroundItem;
-        public bool                      IsElder;
-        public bool                      IsIdentified;
-        public bool                      IsRGB;
-        public bool                      IsShaper;
-        public int                       ItemLevel;
-        public int                       LargestLink;
-        public int                       MapTier;
-        public string                    Path;
-        public int                       Quality;
-        public ItemRarity                Rarity;
-        public int                       Sockets;
+        public Entity GroundItem;
+        public int Height;
+        public bool IsElder;
+        public bool IsIdentified;
+        public bool IsRGB;
+        public bool IsShaper;
+        public bool IsWeapon;
+        public int ItemLevel;
+        public int LargestLink;
+        public int MapTier;
+        public string Path;
+        public int Quality;
+        public ItemRarity Rarity;
+        public int Sockets;
+        public int Width;
 
         public CustomItem() { }
 
         public CustomItem(ItemsOnGroundLabelElement item)
         {
-            CompleteItem              = item;
-            Entity groundItem         = item.ItemOnGround.GetComponent<WorldItem>().ItemEntity;
-            GroundItem                = groundItem;
-            Path                      = groundItem.Path;
-            BaseItemType baseItemType = BasePlugin.API.GameController.Files.BaseItemTypes.Translate(Path);
-            ClassName                 = baseItemType.ClassName;
-            BaseName                  = baseItemType.BaseName;
+            CompleteItem = item;
+            var groundItem = item.ItemOnGround.GetComponent<WorldItem>().ItemEntity;
+            GroundItem = groundItem;
+            Path = groundItem.Path;
+            var baseItemType = BasePlugin.API.GameController.Files.BaseItemTypes.Translate(Path);
+            ClassName = baseItemType.ClassName;
+            BaseName = baseItemType.BaseName;
+            Width = baseItemType.Width;
+            Height = baseItemType.Height;
+            var WeaponClass = new List<string>
+            {
+                    "One Hand Mace",
+                    "Two Hand Mace",
+                    "One Hand Axe",
+                    "Two Hand Axe",
+                    "One Hand Sword",
+                    "Two Hand Sword",
+                    "Thrusting One Hand Sword",
+                    "Bow",
+                    "Claw",
+                    "Dagger",
+                    "Sceptre",
+                    "Staff",
+                    "Wand"
+            };
             if (groundItem.HasComponent<Quality>())
             {
-                Quality quality = groundItem.GetComponent<Quality>();
-                Quality         = quality.ItemQuality;
+                var quality = groundItem.GetComponent<Quality>();
+                Quality = quality.ItemQuality;
             }
 
             if (groundItem.HasComponent<Base>())
             {
-                Base @base = groundItem.GetComponent<Base>();
-                IsElder    = @base.isElder;
-                IsShaper   = @base.isShaper;
+                var @base = groundItem.GetComponent<Base>();
+                IsElder = @base.isElder;
+                IsShaper = @base.isShaper;
             }
 
             if (groundItem.HasComponent<Mods>())
             {
-                Mods mods    = groundItem.GetComponent<Mods>();
-                Rarity       = mods.ItemRarity;
+                var mods = groundItem.GetComponent<Mods>();
+                Rarity = mods.ItemRarity;
                 IsIdentified = mods.Identified;
-                ItemLevel    = mods.ItemLevel;
+                ItemLevel = mods.ItemLevel;
             }
 
             if (groundItem.HasComponent<Sockets>())
             {
-                Sockets sockets = groundItem.GetComponent<Sockets>();
-                IsRGB           = sockets.IsRGB;
-                Sockets         = sockets.NumberOfSockets;
-                LargestLink     = sockets.LargestLinkSize;
+                var sockets = groundItem.GetComponent<Sockets>();
+                IsRGB = sockets.IsRGB;
+                Sockets = sockets.NumberOfSockets;
+                LargestLink = sockets.LargestLinkSize;
+            }
+
+            if (WeaponClass.Any(ClassName.Equals))
+            {
+                IsWeapon = true;
             }
 
             MapTier = groundItem.HasComponent<Map>() ? groundItem.GetComponent<Map>().Tier : 0;

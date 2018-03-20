@@ -122,6 +122,7 @@ namespace Pickit.Core
 
                 Settings.Rares.Value = ImGuiExtension.Checkbox("##Rares", Settings.Rares);
                 ImGui.SameLine();
+                ImGui.SetNextTreeNodeOpen(true);
                 if (ImGui.TreeNode("Rares"))
                 {
                     Settings.RareJewels.Value = ImGuiExtension.Checkbox("Jewels", Settings.RareJewels);
@@ -146,6 +147,12 @@ namespace Pickit.Core
                     Settings.RareArmourilvl.Value = ImGuiExtension.IntSlider("##RareArmours", "Lowest iLvl", Settings.RareArmourilvl);
                     ImGui.SameLine();
                     Settings.RareArmour.Value = ImGuiExtension.Checkbox("Armours", Settings.RareArmour);
+                    ImGui.Spacing();
+                    Settings.RareWeaponilvl.Value = ImGuiExtension.IntSlider("##RareWeapons", "Lowest iLvl", Settings.RareWeaponilvl);
+                    ImGui.SameLine();
+                    Settings.RareWeapon.Value = ImGuiExtension.Checkbox("Weapons", Settings.RareWeapon);
+                    Settings.RareWeaponWidth.Value = ImGuiExtension.IntSlider("Maximum Width##RareWeaponWidth", Settings.RareWeaponWidth);
+                    Settings.RareWeaponHeight.Value = ImGuiExtension.IntSlider("Maximum Height##RareWeaponHeight", Settings.RareWeaponHeight);
                     ImGui.TreePop();
                 }
             }
@@ -206,6 +213,7 @@ namespace Pickit.Core
                     if (Settings.RareBoots && item.ClassName == "Boots" && item.ItemLevel >= Settings.RareBootsilvl) return true;
                     if (Settings.RareHelmets && item.ClassName == "Helmet" && item.ItemLevel >= Settings.RareHelmetsilvl) return true;
                     if (Settings.RareArmour && item.ClassName == "Body Armour" && item.ItemLevel >= Settings.RareArmourilvl) return true;
+                    if (Settings.RareWeapon && item.IsWeapon && item.ItemLevel >= Settings.RareWeaponilvl && item.Width <= Settings.RareWeaponWidth && item.Height <= Settings.RareWeaponHeight) return true;
                 }
 
                 #endregion
