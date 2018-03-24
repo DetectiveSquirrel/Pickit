@@ -25,6 +25,10 @@ namespace Pickit.Core
 {
     public class Main : BaseSettingsPlugin<Settings>
     {
+        //https://stackoverflow.com/questions/826777/how-to-have-an-auto-incrementing-version-number-visual-studio
+        public Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+        public string PluginVersion;
+        public DateTime buildDate;
         private const int PixelBorder = 3;
         private const string PickitRuleDirectory = "Pickit Rules";
         private readonly List<EntityWrapper> _entities = new List<EntityWrapper>();
@@ -45,16 +49,17 @@ namespace Pickit.Core
 
         private string PickitConfigFileDirectory => LocalPluginDirectory + @"\" + PickitRuleDirectory;
 
-        internal Memory Process { get; private set; }
-
         public override void Initialise()
         {
             LoadRuleFiles();
-            Process = new Memory(GameController.Window.Process.Id);
+            buildDate = new DateTime(2000, 1, 1).AddDays(version.Build).AddSeconds(version.Revision * 2);
+            PluginVersion = $"{version}";
         }
         
         public override void DrawSettingsMenu()
         {
+            ImGui.BulletText($"v{PluginVersion}");
+            ImGui.BulletText($"Last Updated: {buildDate}");
             Settings.PickUpKey = ImGuiExtension.HotkeySelector("Pickup Key", Settings.PickUpKey);
             Settings.LeftClickToggleNode.Value = ImGuiExtension.Checkbox("Mouse Button: " + (Settings.LeftClickToggleNode ? "Left" : "Right"), Settings.LeftClickToggleNode);
             Settings.GroundChests.Value = ImGuiExtension.Checkbox("Click Chests If No Items Around", Settings.GroundChests);
