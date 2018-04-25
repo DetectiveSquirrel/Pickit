@@ -67,6 +67,8 @@ namespace Pickit.Core
             Settings.ChestRange.Value = ImGuiExtension.IntSlider("Chest Radius", Settings.ChestRange);
             Settings.ExtraDelay.Value = ImGuiExtension.IntSlider("Extra Click Delay", Settings.ExtraDelay);
             Settings.ClickItemTimerDelay.Value = ImGuiExtension.IntSlider("Pickup Delay", Settings.ClickItemTimerDelay);
+            Settings.ShowPickupRange.Value = ImGuiExtension.Checkbox("Display Pickup Radius", Settings.ShowPickupRange);
+            Settings.ShowChestRange.Value = ImGuiExtension.Checkbox("Display Chest Radius", Settings.ShowChestRange);
             //Settings.OverrideItemPickup.Value = ImGuiExtension.Checkbox("Item Pickup Override", Settings.OverrideItemPickup); ImGui.SameLine();
             //ImGuiExtension.ToolTip("Override item.CanPickup\n\rDO NOT enable this unless you know what you're doing!");
             if (ImGui.CollapsingHeader("Pickit Rules", TreeNodeFlags.Framed | TreeNodeFlags.DefaultOpen))
@@ -165,6 +167,16 @@ namespace Pickit.Core
 
         public override void Render()
         {
+            if (Settings.ShowPickupRange)
+            {
+                var pos = GameController.Game.IngameState.Data.LocalPlayer.GetComponent<Render>().Pos;
+                DrawEllipseToWorld(pos, Settings.PickupRange.Value, 25, 2, Color.LawnGreen);
+            }
+            if (Settings.ShowChestRange)
+            {
+                var pos = GameController.Game.IngameState.Data.LocalPlayer.GetComponent<Render>().Pos;
+                DrawEllipseToWorld(pos, Settings.ChestRange.Value, 25, 2, Color.Orange);
+            }
             try
             {
                 if (!Keyboard.IsKeyDown((int) Settings.PickUpKey.Value)) return;
@@ -174,6 +186,36 @@ namespace Pickit.Core
             }
             catch {
                 // ignored
+            }
+        }
+
+        public void DrawEllipseToWorld(Vector3 vector3Pos, int radius, int points, int lineWidth, Color color)
+        {
+            var camera = GameController.Game.IngameState.Camera;
+            var plottedCirclePoints = new List<Vector3>();
+            var slice = 2 * Math.PI / points;
+            for (var i = 0; i < points; i++)
+            {
+                var angle = slice * i;
+                var x = (decimal)vector3Pos.X + decimal.Multiply(radius, (decimal)Math.Cos(angle));
+                var y = (decimal)vector3Pos.Y + decimal.Multiply(radius, (decimal)Math.Sin(angle));
+                plottedCirclePoints.Add(new Vector3((float)x, (float)y, vector3Pos.Z));
+            }
+
+            var rndEntity = GameController.Entities.FirstOrDefault(x => x.HasComponent<Render>() && GameController.Player.Address != x.Address);
+            for (var i = 0; i < plottedCirclePoints.Count; i++)
+            {
+                if (i >= plottedCirclePoints.Count - 1)
+                {
+                    var pointEnd1 = camera.WorldToScreen(plottedCirclePoints.Last(), rndEntity);
+                    var pointEnd2 = camera.WorldToScreen(plottedCirclePoints[0], rndEntity);
+                    Graphics.DrawLine(pointEnd1, pointEnd2, lineWidth, color);
+                    return;
+                }
+
+                var point1 = camera.WorldToScreen(plottedCirclePoints[i], rndEntity);
+                var point2 = camera.WorldToScreen(plottedCirclePoints[i + 1], rndEntity);
+                Graphics.DrawLine(point1, point2, lineWidth, color);
             }
         }
 
@@ -335,6 +377,7 @@ namespace Pickit.Core
 
         private bool TryToPick(CustomItem pickUpThisItem)
         {
+
             if (Misc.EntityDistance(pickUpThisItem.CompleteItem.ItemOnGround) >= Settings.PickupRange)
             {
                 _working = false;
@@ -343,6 +386,8 @@ namespace Pickit.Core
 
             var vect = pickUpThisItem.CompleteItem.Label.GetClientRect().Center;
             var vectWindow = GameController.Window.GetWindowRectangle();
+            _clickWindowOffset = GameController.Window.GetWindowRectangle().TopLeft;
+            vect += _clickWindowOffset;
             if (vect.Y + PixelBorder > vectWindow.Bottom || vect.Y - PixelBorder < vectWindow.Top)
             {
                 _working = false;
@@ -355,10 +400,9 @@ namespace Pickit.Core
                 return true;
             }
 
-            _clickWindowOffset = GameController.Window.GetWindowRectangle().TopLeft;
             var address = pickUpThisItem.CompleteItem.ItemOnGround.GetComponent<Targetable>().Address;
             var isTargeted = address != 0 && Memory.ReadByte(address + 0x2A) == 1;
-            Mouse.SetCursorPos(vect + _clickWindowOffset);
+            Mouse.SetCursorPos(vect);
             if (!isTargeted) return false;
             if (_pickUpTimer.ElapsedMilliseconds < Settings.ClickItemTimerDelay)
             {

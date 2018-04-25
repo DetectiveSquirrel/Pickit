@@ -65,6 +65,8 @@ namespace Pickit.Core
             LastSettingPos = new ImGuiVector2(centerPos.X - LastSettingSize.X / 2,centerPos.Y - LastSettingSize.Y / 2);
         }
 
+        public ToggleNode ShowPickupRange { get; set; } = false;
+        public ToggleNode ShowChestRange { get; set; } = false;
         public HotkeyNode PickUpKey { get; set; }
         public RangeNode<int> PickupRange { get; set; }
         public RangeNode<int> ChestRange { get; set; }
