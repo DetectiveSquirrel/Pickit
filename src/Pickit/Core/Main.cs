@@ -401,7 +401,8 @@ namespace Pickit.Core
             }
 
             var address = pickUpThisItem.CompleteItem.ItemOnGround.GetComponent<Targetable>().Address;
-            var isTargeted = address != 0 && Memory.ReadByte(address + 0x2A) == 1;
+            var isTargeted = address != 0 && Memory.ReadBytes(address + 0x30, 4)[2] == 1;
+            //var isTargeted = address != 0 && Memory.ReadByte(address + 0x30)[3] == 1;
             Mouse.SetCursorPos(vect);
             if (!isTargeted) return false;
             if (_pickUpTimer.ElapsedMilliseconds < Settings.ClickItemTimerDelay)
