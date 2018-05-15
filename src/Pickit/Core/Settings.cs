@@ -60,9 +60,6 @@ namespace Pickit.Core
             UniqueRuleFile = string.Empty;
             LeftClickToggleNode = true;
             OverrideItemPickup = false;
-
-            LastSettingSize = new ImGuiVector2(620, 376);
-            LastSettingPos = new ImGuiVector2(centerPos.X - LastSettingSize.X / 2,centerPos.Y - LastSettingSize.Y / 2);
         }
 
         public ToggleNode ShowPickupRange { get; set; } = false;
@@ -115,13 +112,11 @@ namespace Pickit.Core
         public ToggleNode GroundChests { get; set; }
         public ToggleNode LeftClickToggleNode { get; set; }
         public ToggleNode OverrideItemPickup { get; set; }
+        public RangeNode<int> UpdatesPerSecond { get; set; } = new RangeNode<int>(30, 0, 100);
 
         public string NormalRuleFile { get; set; }
         public string MagicRuleFile { get; set; }
         public string RareRuleFile { get; set; }
         public string UniqueRuleFile { get; set; }
-
-        public ImGuiVector2 LastSettingPos { get; set; }
-        public ImGuiVector2 LastSettingSize { get; set; }
     }
 }

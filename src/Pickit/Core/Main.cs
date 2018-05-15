@@ -46,6 +46,7 @@ namespace Pickit.Core
 
         public Main() => PluginName = "Pickit";
         private List<string> PickitFiles { get; set; }
+        public DateTime LastRenderTick { get; set; }
 
         private string PickitConfigFileDirectory => LocalPluginDirectory + @"\" + PickitRuleDirectory;
 
@@ -54,12 +55,14 @@ namespace Pickit.Core
             LoadRuleFiles();
             buildDate = new DateTime(2000, 1, 1).AddDays(version.Build).AddSeconds(version.Revision * 2);
             PluginVersion = $"{version}";
+            LastRenderTick = DateTime.Now;
         }
         
         public override void DrawSettingsMenu()
         {
             ImGui.BulletText($"v{PluginVersion}");
             ImGui.BulletText($"Last Updated: {buildDate}");
+            Settings.UpdatesPerSecond.Value = ImGuiExtension.IntSlider("Render Cycles Per Second", Settings.UpdatesPerSecond); ImGuiExtension.ToolTip("Set to 0 to disable");
             Settings.PickUpKey = ImGuiExtension.HotkeySelector("Pickup Key", Settings.PickUpKey);
             Settings.LeftClickToggleNode.Value = ImGuiExtension.Checkbox("Mouse Button: " + (Settings.LeftClickToggleNode ? "Left" : "Right"), Settings.LeftClickToggleNode);
             Settings.GroundChests.Value = ImGuiExtension.Checkbox("Click Chests If No Items Around", Settings.GroundChests);
@@ -169,22 +172,36 @@ namespace Pickit.Core
         {
             if (Settings.ShowPickupRange)
             {
-                var pos = GameController.Game.IngameState.Data.LocalPlayer.GetComponent<Render>().Pos;
+                Vector3 pos = GameController.Game.IngameState.Data.LocalPlayer.GetComponent<Render>().Pos;
                 DrawEllipseToWorld(pos, Settings.PickupRange.Value, 25, 2, Color.LawnGreen);
             }
             if (Settings.ShowChestRange)
             {
-                var pos = GameController.Game.IngameState.Data.LocalPlayer.GetComponent<Render>().Pos;
+                Vector3 pos = GameController.Game.IngameState.Data.LocalPlayer.GetComponent<Render>().Pos;
                 DrawEllipseToWorld(pos, Settings.ChestRange.Value, 25, 2, Color.Orange);
             }
             try
             {
-                if (!Keyboard.IsKeyDown((int) Settings.PickUpKey.Value)) return;
-                if (_working) return;
+
+                if (Settings.UpdatesPerSecond != 0)
+                {
+                    if (LastRenderTick.AddMilliseconds(1000 / Settings.UpdatesPerSecond) > DateTime.Now)
+                        return;
+
+                    LastRenderTick = DateTime.Now;
+                }
+
+                if (!Keyboard.IsKeyDown((int) Settings.PickUpKey.Value))
+                    return;
+
+                if (_working)
+                    return;
+
                 _working = true;
                 FindItemToPick();
             }
-            catch {
+            catch
+            {
                 // ignored
             }
         }
