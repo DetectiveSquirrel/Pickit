@@ -338,6 +338,8 @@ namespace Pickit.Core
 
         public bool DoWePickThis(CustomItem itemEntity)
         {
+            if (itemEntity.CompleteItem.Address == 0) return false;
+
             var pickItemUp = false;
 
             #region Force Pickup All
@@ -377,7 +379,7 @@ namespace Pickit.Core
 
         private void FindItemToPick()
         {
-            var currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabels.Where(x => x.ItemOnGround.Path.ToLower().Contains("worlditem") && x.IsVisible && (x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds <= 0))
+            var currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabels.ToList().Where(x => x.Address != 0 && x.ItemOnGround.Path.ToLower().Contains("worlditem") && x.IsVisible && (x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds <= 0))
                                               .Select(x => new Tuple<int, CustomItem>(Misc.EntityDistance(x.ItemOnGround), new CustomItem(x)))
                                               .OrderBy(x => x.Item1)
                                               .ToList();
@@ -394,6 +396,7 @@ namespace Pickit.Core
 
         private bool TryToPick(CustomItem pickUpThisItem)
         {
+            if (pickUpThisItem.CompleteItem.Address == 0) return false;
 
             if (Misc.EntityDistance(pickUpThisItem.CompleteItem.ItemOnGround) >= Settings.PickupRange)
             {
