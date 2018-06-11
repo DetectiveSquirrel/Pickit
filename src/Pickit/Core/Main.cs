@@ -7,19 +7,21 @@
 
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using ImGuiNET;
 using Pickit.Utilities;
 using PoeHUD.Framework.Helpers;
 using PoeHUD.Models;
 using PoeHUD.Models.Enums;
 using PoeHUD.Plugins;
+using PoeHUD.Poe;
 using PoeHUD.Poe.Components;
+using PoeHUD.Poe.RemoteMemoryObjects;
 using SharpDX;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace Pickit.Core
 {
@@ -92,6 +94,18 @@ namespace Pickit.Core
                 Settings.ShaperItems.Value = ImGuiExtension.Checkbox("Pickup Shaper Items", Settings.ShaperItems);
                 ImGui.SameLine();
                 Settings.ElderItems.Value = ImGuiExtension.Checkbox("Pickup Elder Items", Settings.ElderItems);
+
+
+                if (ImGui.TreeNode("Scroll Limiter"))
+                {
+                    Settings.MaxScrollsToPickup.Value = ImGuiExtension.Checkbox("Set Limit Of Scrolls To Pickup || 0 = Disable Feature", Settings.MaxScrollsToPickup);
+                    Settings.MaxScrollsToPickupAmount_Portal.Value = ImGuiExtension.IntSlider("Portal Scroll", Settings.MaxScrollsToPickupAmount_Portal);
+                    Settings.MaxScrollsToPickupAmount_Ident.Value = ImGuiExtension.IntSlider("Scroll of Wisdom", Settings.MaxScrollsToPickupAmount_Ident);
+                    ImGui.TreePop();
+                }
+
+
+
                 if (ImGui.TreeNode("Links/Sockets/RGB"))
                 {
                     Settings.RGB.Value = ImGuiExtension.Checkbox("RGB Items", Settings.RGB);
@@ -298,7 +312,42 @@ namespace Pickit.Core
 
                 #region Currency
 
-                if (Settings.AllCurrency && item.ClassName == "StackableCurrency") return true;
+                if (Settings.AllCurrency && item.ClassName == "StackableCurrency")
+                {
+                    if (Settings.MaxScrollsToPickup)
+                        if (item.BaseName == "Scroll of Wisdom" || item.BaseName == "Portal Scroll")
+                        {
+                            List<Entity> stash = (from serverDataPlayerInventory in GameController.Game.IngameState.ServerData.PlayerInventories
+                                    where serverDataPlayerInventory.Inventory.InventType == InventoryTypeE.Main
+                                    from entity
+                                        in serverDataPlayerInventory.Inventory.Items
+                                    select entity)
+                                .ToList();
+
+                            int identCount = 0;
+                            int portalCount = 0;
+
+                            // Get current count of our scrolls
+                            foreach (Entity entity in stash)
+                                if (entity.Path == "Metadata/Items/Currency/CurrencyIdentification")
+                                    identCount += entity.GetComponent<Stack>().Size;
+                                else if (entity.Path == "Metadata/Items/Currency/CurrencyPortal")
+                                    portalCount += entity.GetComponent<Stack>().Size;
+
+                            //LogMessage($"Portal={portalCount} || Id={identCount}", 10);
+
+                            if (item.BaseName == "Scroll of Wisdom")
+                            {
+                                if (Settings.MaxScrollsToPickupAmount_Ident > 0 && identCount + item.Stack > Settings.MaxScrollsToPickupAmount_Ident) return false;
+                            }
+                            else if (item.BaseName == "Portal Scroll")
+                            {
+                                if (Settings.MaxScrollsToPickupAmount_Portal > 0 && portalCount + item.Stack > Settings.MaxScrollsToPickupAmount_Portal) return false;
+                            }
+                        }
+
+                    return true;
+                }
 
                 #endregion
 

@@ -30,6 +30,7 @@ namespace Pickit.Core
         public ItemRarity Rarity;
         public int Sockets;
         public int Width;
+        public int Stack;
 
         public CustomItem() { }
 
@@ -87,6 +88,12 @@ namespace Pickit.Core
                 IsRGB = sockets.IsRGB;
                 Sockets = sockets.NumberOfSockets;
                 LargestLink = sockets.LargestLinkSize;
+            }
+
+            if (groundItem.HasComponent<Stack>())
+            {
+                var stack = groundItem.GetComponent<Stack>();
+                Stack = stack.Size;
             }
 
             if (WeaponClass.Any(ClassName.Equals))

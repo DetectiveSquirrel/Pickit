@@ -1,7 +1,5 @@
-﻿using System.Windows.Forms;
-using PoeHUD.Hud.Settings;
-using PoeHUD.Plugins;
-using ImGuiVector2 = System.Numerics.Vector2;
+﻿using PoeHUD.Hud.Settings;
+using System.Windows.Forms;
 
 namespace Pickit.Core
 {
@@ -9,7 +7,6 @@ namespace Pickit.Core
     {
         public Settings()
         {
-            var centerPos = BasePlugin.API.GameController.Window.GetWindowRectangle().Center;
             PickUpKey = Keys.F1;
             PickupRange = new RangeNode<int>(600, 1, 1000);
             ChestRange = new RangeNode<int>(500, 1, 1000);
@@ -113,8 +110,11 @@ namespace Pickit.Core
         public ToggleNode LeftClickToggleNode { get; set; }
         public ToggleNode OverrideItemPickup { get; set; }
         public RangeNode<int> UpdatesPerSecond { get; set; } = new RangeNode<int>(30, 0, 100);
+        public ToggleNode MaxScrollsToPickup { get; set; } = new ToggleNode(false);
+        public RangeNode<int> MaxScrollsToPickupAmount_Portal { get; set; } = new RangeNode<int>(40, 0, 40);
+        public RangeNode<int> MaxScrollsToPickupAmount_Ident { get; set; } = new RangeNode<int>(40, 0, 40);
 
-        public string NormalRuleFile { get; set; }
+        public string NormalRuleFile { get; set; } 
         public string MagicRuleFile { get; set; }
         public string RareRuleFile { get; set; }
         public string UniqueRuleFile { get; set; }
