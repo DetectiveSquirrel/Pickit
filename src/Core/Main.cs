@@ -432,13 +432,18 @@ namespace Pickit.Core
                                               .Select(x => new Tuple<int, CustomItem>(Misc.EntityDistance(x.ItemOnGround), new CustomItem(x)))
                                               .OrderBy(x => x.Item1)
                                               .ToList();
-            var pickUpThisItem = (from x in currentLabels where DoWePickThis(x.Item2) && x.Item1 < Settings.PickupRange select x).FirstOrDefault();
+            Tuple<int, CustomItem> pickUpThisItem = (from x in currentLabels where DoWePickThis(x.Item2) && x.Item1 < Settings.PickupRange select x).FirstOrDefault();
             if (pickUpThisItem != null)
             {
                 if (TryToPick(pickUpThisItem.Item2)) return;
             }
             else if (Settings.GroundChests)
+            {
                 ClickOnChests();
+            }
+
+            // Lets face it, no one wants to do this themself
+            OpenFireFlyChests();
 
             _working = false;
         }
@@ -509,6 +514,35 @@ namespace Pickit.Core
             SetCursorToEntityAndClick(tempList[0].Item3);
             var centerScreen = GameController.Window.GetWindowRectangle().Center;
             Mouse.SetCursorPos(centerScreen);
+            _working = false;
+        }
+
+        private void OpenFireFlyChests()
+        {
+            if (GameController.Game.IngameState.Data.CurrentArea.Name == "The Dread Thicket")
+            {
+                var sortedByDistChest = new List<Tuple<int, long, EntityWrapper>>();
+                foreach (var entity in _entities)
+                {
+                    if (entity.Path.Contains("Metadata/Chests/QuestChests/Fireflies/FireflyChest"))
+                    {
+                        if (!entity.HasComponent<Chest>()) continue;
+                        var chest = entity.GetComponent<Chest>();
+                        if (chest.IsStrongbox) continue;
+                        if (chest.IsOpened) continue;
+                        var tuple = new Tuple<int, long, EntityWrapper>(Misc.EntityDistance(entity), entity.Address, entity);
+                        if (sortedByDistChest.Any(x => x.Item2 == entity.Address)) continue;
+                        sortedByDistChest.Add(tuple);
+                    }
+                }
+
+                var tempList = sortedByDistChest.OrderBy(x => x.Item1).ToList();
+                if (tempList.Count <= 0) return;
+                if (tempList[0].Item1 >= Settings.ChestRange) return;
+                SetCursorToEntityAndClick(tempList[0].Item3);
+                var centerScreen = GameController.Window.GetWindowRectangle().Center;
+                Mouse.SetCursorPos(centerScreen);
+            }
             _working = false;
         }
 
