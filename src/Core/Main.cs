@@ -33,6 +33,7 @@ namespace Pickit.Core
         public DateTime buildDate;
         private const int PixelBorder = 3;
         private const string PickitRuleDirectory = "Pickit Rules";
+        private const string ClickitRuleDirectory = "Clickit Rules";
         private readonly List<EntityWrapper> _entities = new List<EntityWrapper>();
         private readonly Stopwatch _pickUpTimer = Stopwatch.StartNew();
         private Vector2 _clickWindowOffset;
@@ -40,17 +41,23 @@ namespace Pickit.Core
         private HashSet<string> _normalRules;
         private HashSet<string> _rareRules;
         private HashSet<string> _uniqueRules;
+        private HashSet<string> _questRules;
+        private HashSet<string> _miscRules;
         private bool _working;
         public string MagicRuleFile;
         public string NormalRuleFile;
         public string RareRuleFile;
         public string UniqueRuleFile;
+        public string QuestRuleFile;
+        public string MiscRuleFile;
 
-        public Main() => PluginName = "Pickit";
+        public Main() => PluginName = "Clickit";
         private List<string> PickitFiles { get; set; }
+        private List<string> ClickitFiles { get; set; }
         public DateTime LastRenderTick { get; set; }
 
         private string PickitConfigFileDirectory => LocalPluginDirectory + @"\" + PickitRuleDirectory;
+        private string ClickitConfigFileDirectory => LocalPluginDirectory + @"\" + ClickitRuleDirectory;
 
         public override void Initialise()
         {
@@ -68,17 +75,20 @@ namespace Pickit.Core
             Settings.PickUpKey = ImGuiExtension.HotkeySelector("Pickup Key", Settings.PickUpKey);
             Settings.LeftClickToggleNode.Value = ImGuiExtension.Checkbox("Mouse Button: " + (Settings.LeftClickToggleNode ? "Left" : "Right"), Settings.LeftClickToggleNode);
             Settings.GroundChests.Value = ImGuiExtension.Checkbox("Click Chests If No Items Around", Settings.GroundChests);
+            Settings.ClickitClickables.Value = ImGuiExtension.Checkbox("Click Misc Quest Things", Settings.ClickitClickables);
             Settings.PickupRange.Value = ImGuiExtension.IntSlider("Pickup Radius", Settings.PickupRange);
             Settings.ChestRange.Value = ImGuiExtension.IntSlider("Chest Radius", Settings.ChestRange);
+            Settings.ClickitRange.Value = ImGuiExtension.IntSlider("Quest Radius", Settings.ClickitRange);
             Settings.ExtraDelay.Value = ImGuiExtension.IntSlider("Extra Click Delay", Settings.ExtraDelay);
             Settings.ClickItemTimerDelay.Value = ImGuiExtension.IntSlider("Pickup Delay", Settings.ClickItemTimerDelay);
             Settings.ShowPickupRange.Value = ImGuiExtension.Checkbox("Display Pickup Radius", Settings.ShowPickupRange);
             Settings.ShowChestRange.Value = ImGuiExtension.Checkbox("Display Chest Radius", Settings.ShowChestRange);
+            Settings.ShowClickitRange.Value = ImGuiExtension.Checkbox("Display Quest Radius", Settings.ShowClickitRange);
             //Settings.OverrideItemPickup.Value = ImGuiExtension.Checkbox("Item Pickup Override", Settings.OverrideItemPickup); ImGui.SameLine();
             //ImGuiExtension.ToolTip("Override item.CanPickup\n\rDO NOT enable this unless you know what you're doing!");
+            if (ImGui.Button("Reload All Files")) LoadRuleFiles();
             if (ImGui.CollapsingHeader("Pickit Rules", TreeNodeFlags.Framed | TreeNodeFlags.DefaultOpen))
             {
-                if (ImGui.Button("Reload All Files")) LoadRuleFiles();
                 Settings.NormalRuleFile = ImGuiExtension.ComboBox("Normal Rules", Settings.NormalRuleFile, PickitFiles, out var tempRef);
                 if (tempRef) _normalRules = LoadPickit(Settings.NormalRuleFile);
                 Settings.MagicRuleFile = ImGuiExtension.ComboBox("Magic Rules", Settings.MagicRuleFile, PickitFiles, out tempRef);
@@ -87,6 +97,13 @@ namespace Pickit.Core
                 if (tempRef) _rareRules = LoadPickit(Settings.RareRuleFile);
                 Settings.UniqueRuleFile = ImGuiExtension.ComboBox("Unique Rules", Settings.UniqueRuleFile, PickitFiles, out tempRef);
                 if (tempRef) _uniqueRules = LoadPickit(Settings.UniqueRuleFile);
+            }
+            if (ImGui.CollapsingHeader("Clickit Rules", TreeNodeFlags.Framed | TreeNodeFlags.DefaultOpen))
+            {
+                Settings.QuestRuleFile = ImGuiExtension.ComboBox("Quest Object Rules", Settings.QuestRuleFile, ClickitFiles, out var tempRef);
+                if (tempRef) _questRules = LoadClickit(Settings.QuestRuleFile);
+                Settings.MiscRuleFile = ImGuiExtension.ComboBox("Misc Object Rules", Settings.MiscRuleFile, ClickitFiles, out tempRef);
+                if (tempRef) _miscRules = LoadClickit(Settings.MiscRuleFile);
             }
 
             if (ImGui.CollapsingHeader("Item Logic", TreeNodeFlags.Framed | TreeNodeFlags.DefaultOpen))
@@ -187,12 +204,17 @@ namespace Pickit.Core
             if (Settings.ShowPickupRange)
             {
                 Vector3 pos = GameController.Game.IngameState.Data.LocalPlayer.GetComponent<Render>().Pos;
-                DrawEllipseToWorld(pos, Settings.PickupRange.Value, 25, 2, Color.LawnGreen);
+                DrawEllipseToWorld(pos, Settings.PickupRange.Value, 25, 2, Color.Red);
             }
             if (Settings.ShowChestRange)
             {
                 Vector3 pos = GameController.Game.IngameState.Data.LocalPlayer.GetComponent<Render>().Pos;
                 DrawEllipseToWorld(pos, Settings.ChestRange.Value, 25, 2, Color.Orange);
+            }
+            if (Settings.ShowClickitRange)
+            {
+                Vector3 pos = GameController.Game.IngameState.Data.LocalPlayer.GetComponent<Render>().Pos;
+                DrawEllipseToWorld(pos, Settings.ClickitRange.Value, 25, 2, Color.LawnGreen);
             }
             try
             {
@@ -441,9 +463,12 @@ namespace Pickit.Core
             {
                 ClickOnChests();
             }
-
             // Lets face it, no one wants to do this themself
-            OpenFireFlyChests();
+            if (Settings.ClickitClickables)
+            {
+                ClickQuestObjects();
+                ClickMiscObjects();
+            }
 
             _working = false;
         }
@@ -511,56 +536,118 @@ namespace Pickit.Core
             var tempList = sortedByDistChest.OrderBy(x => x.Item1).ToList();
             if (tempList.Count <= 0) return;
             if (tempList[0].Item1 >= Settings.ChestRange) return;
-            SetCursorToEntityAndClick(tempList[0].Item3);
-            var centerScreen = GameController.Window.GetWindowRectangle().Center;
-            Mouse.SetCursorPos(centerScreen);
+            Camera camera = GameController.Game.IngameState.Camera;
+            Vector2 chestScreenCoords = camera.WorldToScreen(tempList[0].Item3.Pos.Translate(0, 0, 0), tempList[0].Item3);
+            if (chestScreenCoords == new Vector2()) return;
+            Vector2 coords = new Vector2(chestScreenCoords.X, chestScreenCoords.Y);
+            Mouse.SetCursorPos(coords);
+            var isTargeted = tempList[0].Item3.GetComponent<Targetable>().isTargeted;
+            Mouse.SetCursorPos(coords);
+            if (!isTargeted) return;
+            if (_pickUpTimer.ElapsedMilliseconds < Settings.ClickItemTimerDelay)
+            {
+                _working = false;
+                return;
+            }
+            _pickUpTimer.Restart();
+            if (Settings.LeftClickToggleNode)
+                Mouse.LeftClick(Settings.ExtraDelay);
+            else
+                Mouse.RightClick(Settings.ExtraDelay);
             _working = false;
         }
 
-        private void OpenFireFlyChests()
+        private void ClickQuestObjects()
         {
-            if (GameController.Game.IngameState.Data.CurrentArea.Name == "The Dread Thicket")
+            List<Tuple<int, long, EntityWrapper>> sortedDistance = new List<Tuple<int, long, EntityWrapper>>();
+            foreach (EntityWrapper entity in _entities)
             {
-                var sortedByDistChest = new List<Tuple<int, long, EntityWrapper>>();
-                foreach (var entity in _entities)
+                foreach (string questChest in _questRules)
                 {
-                    if (entity.Path.Contains("Metadata/Chests/QuestChests/Fireflies/FireflyChest"))
+                    if (!questChest.ToLower().Contains(entity.Path.ToLower()))
                     {
-                        if (!entity.HasComponent<Chest>()) continue;
-                        var chest = entity.GetComponent<Chest>();
-                        if (chest.IsStrongbox) continue;
-                        if (chest.IsOpened) continue;
-                        var tuple = new Tuple<int, long, EntityWrapper>(Misc.EntityDistance(entity), entity.Address, entity);
-                        if (sortedByDistChest.Any(x => x.Item2 == entity.Address)) continue;
-                        sortedByDistChest.Add(tuple);
+                        continue;
                     }
+                    Targetable targetComp = entity.GetComponent<Targetable>();
+                    if (!targetComp.isTargetable) continue;
+                    Tuple<int, long, EntityWrapper> tuple = new Tuple<int, long, EntityWrapper>(Misc.EntityDistance(entity), entity.Address, entity);
+                    if (sortedDistance.Any(x => x.Item2 == entity.Address)) continue;
+                    sortedDistance.Add(tuple);
                 }
 
-                var tempList = sortedByDistChest.OrderBy(x => x.Item1).ToList();
-                if (tempList.Count <= 0) return;
-                if (tempList[0].Item1 >= Settings.ChestRange) return;
-                SetCursorToEntityAndClick(tempList[0].Item3);
-                var centerScreen = GameController.Window.GetWindowRectangle().Center;
-                Mouse.SetCursorPos(centerScreen);
             }
+
+            List<Tuple<int, long, EntityWrapper>> tempList = sortedDistance.OrderBy(x => x.Item1).ToList();
+            if (tempList.Count <= 0) return;
+            if (tempList[0].Item1 >= Settings.ClickitRange) return;
+            Camera camera = GameController.Game.IngameState.Camera;
+            Vector2 chestScreenCoords = camera.WorldToScreen(tempList[0].Item3.Pos.Translate(0, 0, 0), tempList[0].Item3);
+            if (chestScreenCoords == new Vector2()) return;
+            Vector2 coords = new Vector2(chestScreenCoords.X, chestScreenCoords.Y);
+            Mouse.SetCursorPos(coords);
+            var isTargeted = tempList[0].Item3.GetComponent<Targetable>().isTargeted;
+            Mouse.SetCursorPos(coords);
+            if (!isTargeted) return;
+            if (_pickUpTimer.ElapsedMilliseconds < Settings.ClickItemTimerDelay)
+            {
+                _working = false;
+                return;
+            }
+            _pickUpTimer.Restart();
+            if (Settings.LeftClickToggleNode)
+                Mouse.LeftClick(Settings.ExtraDelay);
+            else
+                Mouse.RightClick(Settings.ExtraDelay);
             _working = false;
         }
 
-        //Copy-Paste - Sithylis_QoL
-        private void SetCursorToEntityAndClick(EntityWrapper entity)
+        private void ClickMiscObjects()
         {
-            var camera = GameController.Game.IngameState.Camera;
-            var chestScreenCoords = camera.WorldToScreen(entity.Pos.Translate(0, 0, 0), entity);
+            List<Tuple<int, long, EntityWrapper>> sortedDistance = new List<Tuple<int, long, EntityWrapper>>();
+            foreach (EntityWrapper entity in _entities)
+            {
+                foreach (string questChest in _miscRules)
+                {
+                    if (!questChest.ToLower().Contains(entity.Path.ToLower()))
+                    {
+                        continue;
+                    }
+                    Targetable targetComp = entity.GetComponent<Targetable>();
+                    if (!targetComp.isTargetable) continue;
+                    Tuple<int, long, EntityWrapper> tuple = new Tuple<int, long, EntityWrapper>(Misc.EntityDistance(entity), entity.Address, entity);
+                    if (sortedDistance.Any(x => x.Item2 == entity.Address)) continue;
+                    sortedDistance.Add(tuple);
+                }
+
+            }
+
+            List<Tuple<int, long, EntityWrapper>> tempList = sortedDistance.OrderBy(x => x.Item1).ToList();
+            if (tempList.Count <= 0) return;
+            if (tempList[0].Item1 >= Settings.ClickitRange) return;
+            Camera camera = GameController.Game.IngameState.Camera;
+            Vector2 chestScreenCoords = camera.WorldToScreen(tempList[0].Item3.Pos.Translate(0, 0, 0), tempList[0].Item3);
             if (chestScreenCoords == new Vector2()) return;
-            var pos = Mouse.GetCursorPosition();
-            var coords = new Vector2(chestScreenCoords.X, chestScreenCoords.Y);
-            Mouse.SetCursorPosAndLeftOrRightClick(coords, 100, Settings.LeftClickToggleNode.Value);
-            Mouse.SetCursorPos(pos.X, pos.Y);
+            Vector2 coords = new Vector2(chestScreenCoords.X, chestScreenCoords.Y);
+            Mouse.SetCursorPos(coords);
+            var isTargeted = tempList[0].Item3.GetComponent<Targetable>().isTargeted;
+            Mouse.SetCursorPos(coords);
+            if (!isTargeted) return;
+            if (_pickUpTimer.ElapsedMilliseconds < Settings.ClickItemTimerDelay)
+            {
+                _working = false;
+                return;
+            }
+            _pickUpTimer.Restart();
+            if (Settings.LeftClickToggleNode)
+                Mouse.LeftClick(Settings.ExtraDelay);
+            else
+                Mouse.RightClick(Settings.ExtraDelay);
+            _working = false;
         }
 
-        #region (Re)Loading Rules
+    #region (Re)Loading Rules
 
-        private void LoadRuleFiles()
+    private void LoadRuleFiles()
         {
             var dirInfo = new DirectoryInfo(PickitConfigFileDirectory);
             PickitFiles = dirInfo.GetFiles("*.txt").Select(x => Path.GetFileNameWithoutExtension(x.Name)).ToList();
@@ -568,6 +655,10 @@ namespace Pickit.Core
             _magicRules = LoadPickit(Settings.MagicRuleFile);
             _rareRules = LoadPickit(Settings.RareRuleFile);
             _uniqueRules = LoadPickit(Settings.UniqueRuleFile);
+
+            dirInfo = new DirectoryInfo(ClickitConfigFileDirectory);
+            ClickitFiles = dirInfo.GetFiles("*.txt").Select(x => Path.GetFileNameWithoutExtension(x.Name)).ToList();
+            _questRules = LoadClickit(Settings.QuestRuleFile);
         }
 
         public HashSet<string> LoadPickit(string fileName)
@@ -578,7 +669,19 @@ namespace Pickit.Core
             var hashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var lines = File.ReadAllLines(pickitFile);
             lines.Where(x => !string.IsNullOrWhiteSpace(x) && !x.StartsWith("#")).ForEach(x => hashSet.Add(x.Trim().ToLowerInvariant()));
-            LogMessage($"PICKIT :: (Re)Loaded {fileName}", 5, Color.GreenYellow);
+            LogMessage($"Pickit :: (Re)Loaded - {fileName}", 5, Color.GreenYellow);
+            return hashSet;
+        }
+
+        public HashSet<string> LoadClickit(string fileName)
+        {
+            if (fileName == string.Empty) return null;
+            var pickitFile = $@"{PluginDirectory}\{ClickitRuleDirectory}\{fileName}.txt";
+            if (!File.Exists(pickitFile)) return null;
+            var hashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var lines = File.ReadAllLines(pickitFile);
+            lines.Where(x => !string.IsNullOrWhiteSpace(x) && !x.StartsWith("#")).ForEach(x => hashSet.Add(x.Trim().ToLowerInvariant()));
+            LogMessage($"Clickit :: (Re)Loaded - {fileName}", 5, Color.GreenYellow);
             return hashSet;
         }
 

@@ -10,6 +10,7 @@ namespace Pickit.Core
             PickUpKey = Keys.F1;
             PickupRange = new RangeNode<int>(600, 1, 1000);
             ChestRange = new RangeNode<int>(500, 1, 1000);
+            ClickitRange = new RangeNode<int>(500, 1, 1000);
             ExtraDelay = new RangeNode<int>(0, 0, 200);
             ClickItemTimerDelay = new RangeNode<int>(124, 1, 200);
             Sockets = true;
@@ -61,9 +62,11 @@ namespace Pickit.Core
 
         public ToggleNode ShowPickupRange { get; set; } = false;
         public ToggleNode ShowChestRange { get; set; } = false;
+        public ToggleNode ShowClickitRange { get; set; } = false;
         public HotkeyNode PickUpKey { get; set; }
         public RangeNode<int> PickupRange { get; set; }
         public RangeNode<int> ChestRange { get; set; }
+        public RangeNode<int> ClickitRange { get; set; }
         public RangeNode<int> ExtraDelay { get; set; }
         public RangeNode<int> ClickItemTimerDelay { get; set; }
         public ToggleNode ShaperItems { get; set; }
@@ -106,6 +109,7 @@ namespace Pickit.Core
         public ToggleNode Gems { get; set; }
         public RangeNode<int> GemQuality { get; set; }
         public ToggleNode QuestItems { get; set; }
+        public ToggleNode ClickitClickables { get; set; } = true;
         public ToggleNode GroundChests { get; set; }
         public ToggleNode LeftClickToggleNode { get; set; }
         public ToggleNode OverrideItemPickup { get; set; }
@@ -118,5 +122,7 @@ namespace Pickit.Core
         public string MagicRuleFile { get; set; }
         public string RareRuleFile { get; set; }
         public string UniqueRuleFile { get; set; }
+        public string QuestRuleFile { get; set; } = string.Empty;
+        public string MiscRuleFile { get; set; } = string.Empty;
     }
 }
