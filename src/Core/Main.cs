@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using PoeHUD.Hud.Preload;
 
 namespace Pickit.Core
 {
@@ -37,13 +38,12 @@ namespace Pickit.Core
         private readonly List<EntityWrapper> _entities = new List<EntityWrapper>();
         private readonly Stopwatch _pickUpTimer = Stopwatch.StartNew();
         private Vector2 _clickWindowOffset;
-        private HashSet<string> _magicRules;
-        private HashSet<string> _normalRules;
-        private HashSet<string> _rareRules;
-        private HashSet<string> _uniqueRules;
-        private HashSet<string> _questRules;
-        private HashSet<string> _miscRules;
-        private bool _working;
+        private List<string> _magicRules;
+        private List<string> _normalRules;
+        private List<string> _rareRules;
+        private List<string> _uniqueRules;
+        private List<string> _questRules;
+        private List<string> _miscRules;
         public string MagicRuleFile;
         public string NormalRuleFile;
         public string RareRuleFile;
@@ -235,11 +235,6 @@ namespace Pickit.Core
 
                 if (!Keyboard.IsKeyDown((int) Settings.PickUpKey.Value))
                     return;
-
-                if (_working)
-                    return;
-
-                _working = true;
                 FindItemToPick();
             }
             catch
@@ -278,7 +273,7 @@ namespace Pickit.Core
             }
         }
 
-        public bool InCustomList(HashSet<string> checkList, CustomItem itemEntity, ItemRarity rarity)
+        public bool InCustomList(List<string> checkList, CustomItem itemEntity, ItemRarity rarity)
         {
             try
             {
@@ -456,90 +451,68 @@ namespace Pickit.Core
 
         private void FindItemToPick()
         {
-            var currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabels.ToList().Where(x => x.Address != 0 && x.ItemOnGround.Path.ToLower().Contains("worlditem") && x.IsVisible && (x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds <= 0))
-                                              .Select(x => new Tuple<int, CustomItem>(Misc.EntityDistance(x.ItemOnGround), new CustomItem(x)))
-                                              .OrderBy(x => x.Item1)
-                                              .ToList();
+            List<Tuple<int, CustomItem>> currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabels.ToList().Where(x => x.Address != 0 && x.ItemOnGround.Path.ToLower().Contains("worlditem") && x.IsVisible && (x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds <= 0))
+                .Select(x => new Tuple<int, CustomItem>(Misc.EntityDistance(x.ItemOnGround), new CustomItem(x)))
+                .OrderBy(x => x.Item1)
+                .ToList();
             Tuple<int, CustomItem> pickUpThisItem = (from x in currentLabels where DoWePickThis(x.Item2) && x.Item1 < Settings.PickupRange select x).FirstOrDefault();
             if (pickUpThisItem != null)
-            {
-                if (TryToPick(pickUpThisItem.Item2)) return;
-            }
+                TryToPick(pickUpThisItem.Item2);
             else if (Settings.GroundChests)
-            {
                 ClickOnChests();
-            }
             // Lets face it, no one wants to do this themself
-            if (Settings.ClickitClickables)
-            {
-                ClickQuestObjects();
+           else if (Settings.ClickitClickables)
                 ClickMiscObjects();
-            }
-
-            _working = false;
         }
 
-        private bool TryToPick(CustomItem pickUpThisItem)
+        private void TryToPick(CustomItem pickUpThisItem)
         {
-            if (pickUpThisItem.CompleteItem.Address == 0) return false;
+            if (pickUpThisItem.CompleteItem.Address == 0) return;
 
             if (Misc.EntityDistance(pickUpThisItem.CompleteItem.ItemOnGround) >= Settings.PickupRange)
-            {
-                _working = false;
-                return true;
-            }
+                return;
 
-            var vect = pickUpThisItem.CompleteItem.Label.GetClientRect().Center;
-            var vectWindow = GameController.Window.GetWindowRectangle();
+            Vector2 vect = pickUpThisItem.CompleteItem.Label.GetClientRect().Center;
+            RectangleF vectWindow = GameController.Window.GetWindowRectangle();
             _clickWindowOffset = GameController.Window.GetWindowRectangle().TopLeft;
             vect += _clickWindowOffset;
             if (vect.Y + PixelBorder > vectWindow.Bottom || vect.Y - PixelBorder < vectWindow.Top)
-            {
-                _working = false;
-                return true;
-            }
+                return;
 
             if (vect.X + PixelBorder > vectWindow.Right || vect.X - PixelBorder < vectWindow.Left)
-            {
-                _working = false;
-                return true;
-            }
+                return;
 
-            var address = pickUpThisItem.CompleteItem.ItemOnGround.GetComponent<Targetable>().Address;
-            var isTargeted = address != 0 && Memory.ReadBytes(address + 0x30, 4)[2] == 1;
+            long address = pickUpThisItem.CompleteItem.ItemOnGround.GetComponent<Targetable>().Address;
+            bool isTargeted = address != 0 && Memory.ReadBytes(address + 0x30, 4)[2] == 1;
             //var isTargeted = address != 0 && Memory.ReadByte(address + 0x30)[3] == 1;
             Mouse.SetCursorPos(vect);
-            if (!isTargeted) return false;
-            if (_pickUpTimer.ElapsedMilliseconds < Settings.ClickItemTimerDelay)
+            if (isTargeted && _pickUpTimer.ElapsedMilliseconds >= Settings.ClickItemTimerDelay)
             {
-                _working = false;
-                return false;
+                _pickUpTimer.Restart();
+                if (Settings.LeftClickToggleNode)
+                    Mouse.LeftClick(Settings.ExtraDelay);
+                else
+                    Mouse.RightClick(Settings.ExtraDelay);
             }
-            _pickUpTimer.Restart();
-            if (Settings.LeftClickToggleNode)
-                Mouse.LeftClick(Settings.ExtraDelay);
-            else
-                Mouse.RightClick(Settings.ExtraDelay);
-            return false;
         }
 
         // Copy-Paste - Qvin0000's version
         private void ClickOnChests()
         {
-            var sortedByDistChest = new List<Tuple<int, long, EntityWrapper>>();
-            foreach (var entity in _entities)
+            List<Tuple<int, long, EntityWrapper>> sortedByDistChest = new List<Tuple<int, long, EntityWrapper>>();
+            foreach (EntityWrapper entity in _entities)
                 if (entity.Path.ToLower().Contains("chests") && entity.IsAlive && entity.IsHostile)
                 {
                     if (!entity.HasComponent<Chest>()) continue;
-                    var chest = entity.GetComponent<Chest>();
+                    Chest chest = entity.GetComponent<Chest>();
                     if (chest.IsStrongbox) continue;
                     if (chest.IsOpened) continue;
-                    var tuple = new Tuple<int, long, EntityWrapper>(Misc.EntityDistance(entity), entity.Address, entity);
+                    Tuple<int, long, EntityWrapper> tuple = new Tuple<int, long, EntityWrapper>(Misc.EntityDistance(entity), entity.Address, entity);
                     if (sortedByDistChest.Any(x => x.Item2 == entity.Address)) continue;
                     sortedByDistChest.Add(tuple);
                 }
 
-            var tempList = sortedByDistChest.OrderBy(x => x.Item1).ToList();
+            List<Tuple<int, long, EntityWrapper>> tempList = sortedByDistChest.OrderBy(x => x.Item1).ToList();
             if (tempList.Count <= 0) return;
             if (tempList[0].Item1 >= Settings.ChestRange) return;
             Camera camera = GameController.Game.IngameState.Camera;
@@ -547,108 +520,64 @@ namespace Pickit.Core
             if (chestScreenCoords == new Vector2()) return;
             Vector2 coords = new Vector2(chestScreenCoords.X, chestScreenCoords.Y);
             Mouse.SetCursorPos(coords);
-            var isTargeted = tempList[0].Item3.GetComponent<Targetable>().isTargeted;
+            bool isTargeted = tempList[0].Item3.GetComponent<Targetable>().isTargeted;
             Mouse.SetCursorPos(coords);
-            if (!isTargeted) return;
-            if (_pickUpTimer.ElapsedMilliseconds < Settings.ClickItemTimerDelay)
-            {
-                _working = false;
+            if (!isTargeted)
                 return;
-            }
+
+            if (_pickUpTimer.ElapsedMilliseconds < Settings.ClickItemTimerDelay)
+                return;
             _pickUpTimer.Restart();
             if (Settings.LeftClickToggleNode)
                 Mouse.LeftClick(Settings.ExtraDelay);
             else
                 Mouse.RightClick(Settings.ExtraDelay);
-            _working = false;
-        }
-
-        private void ClickQuestObjects()
-        {
-            List<Tuple<int, long, EntityWrapper>> sortedDistance = new List<Tuple<int, long, EntityWrapper>>();
-            foreach (EntityWrapper entity in _entities)
-            {
-                foreach (string questChest in _questRules)
-                {
-                    if (!questChest.ToLower().Contains(entity.Path.ToLower()))
-                    {
-                        continue;
-                    }
-                    Targetable targetComp = entity.GetComponent<Targetable>();
-                    if (!targetComp.isTargetable) continue;
-                    Tuple<int, long, EntityWrapper> tuple = new Tuple<int, long, EntityWrapper>(Misc.EntityDistance(entity), entity.Address, entity);
-                    if (sortedDistance.Any(x => x.Item2 == entity.Address)) continue;
-                    sortedDistance.Add(tuple);
-                }
-
-            }
-
-            List<Tuple<int, long, EntityWrapper>> tempList = sortedDistance.OrderBy(x => x.Item1).ToList();
-            if (tempList.Count <= 0) return;
-            if (tempList[0].Item1 >= Settings.ClickitRange) return;
-            Camera camera = GameController.Game.IngameState.Camera;
-            Vector2 chestScreenCoords = camera.WorldToScreen(tempList[0].Item3.Pos.Translate(0, 0, 0), tempList[0].Item3);
-            if (chestScreenCoords == new Vector2()) return;
-            Vector2 coords = new Vector2(chestScreenCoords.X, chestScreenCoords.Y);
-            Mouse.SetCursorPos(coords);
-            var isTargeted = tempList[0].Item3.GetComponent<Targetable>().isTargeted;
-            Mouse.SetCursorPos(coords);
-            if (!isTargeted) return;
-            if (_pickUpTimer.ElapsedMilliseconds < Settings.ClickItemTimerDelay)
-            {
-                _working = false;
-                return;
-            }
-            _pickUpTimer.Restart();
-            if (Settings.LeftClickToggleNode)
-                Mouse.LeftClick(Settings.ExtraDelay);
-            else
-                Mouse.RightClick(Settings.ExtraDelay);
-            _working = false;
         }
 
         private void ClickMiscObjects()
         {
             List<Tuple<int, long, EntityWrapper>> sortedDistance = new List<Tuple<int, long, EntityWrapper>>();
+            List<string> list = new List<string>();
+            list.AddRange(_miscRules);
+            list.AddRange(_questRules);
             foreach (EntityWrapper entity in _entities)
             {
-                foreach (string questChest in _miscRules)
+                foreach (string questChest in list)
                 {
                     if (!questChest.ToLower().Contains(entity.Path.ToLower()))
-                    {
                         continue;
-                    }
                     Targetable targetComp = entity.GetComponent<Targetable>();
                     if (!targetComp.isTargetable) continue;
                     Tuple<int, long, EntityWrapper> tuple = new Tuple<int, long, EntityWrapper>(Misc.EntityDistance(entity), entity.Address, entity);
                     if (sortedDistance.Any(x => x.Item2 == entity.Address)) continue;
                     sortedDistance.Add(tuple);
                 }
-
             }
 
             List<Tuple<int, long, EntityWrapper>> tempList = sortedDistance.OrderBy(x => x.Item1).ToList();
-            if (tempList.Count <= 0) return;
-            if (tempList[0].Item1 >= Settings.ClickitRange) return;
-            Camera camera = GameController.Game.IngameState.Camera;
-            Vector2 chestScreenCoords = camera.WorldToScreen(tempList[0].Item3.Pos.Translate(0, 0, 0), tempList[0].Item3);
-            if (chestScreenCoords == new Vector2()) return;
-            Vector2 coords = new Vector2(chestScreenCoords.X, chestScreenCoords.Y);
-            Mouse.SetCursorPos(coords);
-            var isTargeted = tempList[0].Item3.GetComponent<Targetable>().isTargeted;
-            Mouse.SetCursorPos(coords);
-            if (!isTargeted) return;
-            if (_pickUpTimer.ElapsedMilliseconds < Settings.ClickItemTimerDelay)
-            {
-                _working = false;
+            if (tempList.Count <= 0)
                 return;
+
+            foreach (Tuple<int, long, EntityWrapper> tuple in tempList)
+            {
+                if (tuple.Item1 >= Settings.ClickitRange) continue;
+                Camera camera = GameController.Game.IngameState.Camera;
+                Vector2 chestScreenCoords = camera.WorldToScreen(tuple.Item3.Pos.Translate(0, 0, 0), tuple.Item3);
+                Vector2 coords = new Vector2(chestScreenCoords.X, chestScreenCoords.Y);
+                Mouse.SetCursorPos(coords);
+                bool isTargeted = tuple.Item3.GetComponent<Targetable>().isTargeted;
+                Mouse.SetCursorPos(coords);
+                if (!isTargeted)
+                    continue;
+                if (_pickUpTimer.ElapsedMilliseconds < Settings.ClickItemTimerDelay)
+                    continue;
+                _pickUpTimer.Restart();
+                if (Settings.LeftClickToggleNode)
+                    Mouse.LeftClick(Settings.ExtraDelay);
+                else
+                    Mouse.RightClick(Settings.ExtraDelay);
+                break;
             }
-            _pickUpTimer.Restart();
-            if (Settings.LeftClickToggleNode)
-                Mouse.LeftClick(Settings.ExtraDelay);
-            else
-                Mouse.RightClick(Settings.ExtraDelay);
-            _working = false;
         }
 
     #region (Re)Loading Rules
@@ -665,26 +594,27 @@ namespace Pickit.Core
             dirInfo = new DirectoryInfo(ClickitConfigFileDirectory);
             ClickitFiles = dirInfo.GetFiles("*.txt").Select(x => Path.GetFileNameWithoutExtension(x.Name)).ToList();
             _questRules = LoadClickit(Settings.QuestRuleFile);
+            _miscRules = LoadClickit(Settings.MiscRuleFile);
         }
 
-        public HashSet<string> LoadPickit(string fileName)
+        public List<string> LoadPickit(string fileName)
         {
             if (fileName == string.Empty) return null;
             var pickitFile = $@"{PluginDirectory}\{PickitRuleDirectory}\{fileName}.txt";
             if (!File.Exists(pickitFile)) return null;
-            var hashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var hashSet = new List<string>();
             var lines = File.ReadAllLines(pickitFile);
             lines.Where(x => !string.IsNullOrWhiteSpace(x) && !x.StartsWith("#")).ForEach(x => hashSet.Add(x.Trim().ToLowerInvariant()));
             LogMessage($"Pickit :: (Re)Loaded - {fileName}", 5, Color.GreenYellow);
             return hashSet;
         }
 
-        public HashSet<string> LoadClickit(string fileName)
+        public List<string> LoadClickit(string fileName)
         {
             if (fileName == string.Empty) return null;
             var pickitFile = $@"{PluginDirectory}\{ClickitRuleDirectory}\{fileName}.txt";
             if (!File.Exists(pickitFile)) return null;
-            var hashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var hashSet = new List<string>();
             var lines = File.ReadAllLines(pickitFile);
             lines.Where(x => !string.IsNullOrWhiteSpace(x) && !x.StartsWith("#")).ForEach(x => hashSet.Add(x.Trim().ToLowerInvariant()));
             LogMessage($"Clickit :: (Re)Loaded - {fileName}", 5, Color.GreenYellow);
