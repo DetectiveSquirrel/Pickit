@@ -461,7 +461,7 @@ namespace Pickit.Core
             else if (Settings.GroundChests)
                 ClickOnChests();
             // Lets face it, no one wants to do this themself
-           else if (Settings.ClickitClickables)
+            else if (Settings.ClickitClickables)
                 ClickMiscObjects();
         }
 
@@ -544,7 +544,7 @@ namespace Pickit.Core
             {
                 foreach (string questChest in list)
                 {
-                    if (!questChest.ToLower().Contains(entity.Path.ToLower()))
+                    if (!entity.Path.ToLower().Contains(questChest.ToLower()))
                         continue;
                     Targetable targetComp = entity.GetComponent<Targetable>();
                     if (!targetComp.isTargetable) continue;
