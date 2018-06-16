@@ -89,6 +89,7 @@ namespace Pickit.Core
             if (ImGui.Button("Reload All Files")) LoadRuleFiles();
             if (ImGui.CollapsingHeader("Pickit Rules", TreeNodeFlags.Framed | TreeNodeFlags.DefaultOpen))
             {
+                ImGuiNative.igIndent();
                 Settings.NormalRuleFile = ImGuiExtension.ComboBox("Normal Rules", Settings.NormalRuleFile, PickitFiles, out var tempRef);
                 if (tempRef) _normalRules = LoadPickit(Settings.NormalRuleFile);
                 Settings.MagicRuleFile = ImGuiExtension.ComboBox("Magic Rules", Settings.MagicRuleFile, PickitFiles, out tempRef);
@@ -97,17 +98,21 @@ namespace Pickit.Core
                 if (tempRef) _rareRules = LoadPickit(Settings.RareRuleFile);
                 Settings.UniqueRuleFile = ImGuiExtension.ComboBox("Unique Rules", Settings.UniqueRuleFile, PickitFiles, out tempRef);
                 if (tempRef) _uniqueRules = LoadPickit(Settings.UniqueRuleFile);
+                ImGuiNative.igUnindent();
             }
             if (ImGui.CollapsingHeader("Clickit Rules", TreeNodeFlags.Framed | TreeNodeFlags.DefaultOpen))
             {
+                ImGuiNative.igIndent();
                 Settings.QuestRuleFile = ImGuiExtension.ComboBox("Quest Object Rules", Settings.QuestRuleFile, ClickitFiles, out var tempRef);
                 if (tempRef) _questRules = LoadClickit(Settings.QuestRuleFile);
                 Settings.MiscRuleFile = ImGuiExtension.ComboBox("Misc Object Rules", Settings.MiscRuleFile, ClickitFiles, out tempRef);
                 if (tempRef) _miscRules = LoadClickit(Settings.MiscRuleFile);
+                ImGuiNative.igUnindent();
             }
 
             if (ImGui.CollapsingHeader("Item Logic", TreeNodeFlags.Framed | TreeNodeFlags.DefaultOpen))
             {
+                ImGuiNative.igIndent();
                 Settings.ShaperItems.Value = ImGuiExtension.Checkbox("Pickup Shaper Items", Settings.ShaperItems);
                 ImGui.SameLine();
                 Settings.ElderItems.Value = ImGuiExtension.Checkbox("Pickup Elder Items", Settings.ElderItems);
@@ -196,6 +201,7 @@ namespace Pickit.Core
                     Settings.RareWeaponHeight.Value = ImGuiExtension.IntSlider("Maximum Height##RareWeaponHeight", Settings.RareWeaponHeight);
                     ImGui.TreePop();
                 }
+                ImGuiNative.igUnindent();
             }
         }
 
