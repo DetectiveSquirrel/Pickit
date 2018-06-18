@@ -1,1 +1,4 @@
 # Names are ItemBaseName
+
+Opal Ring
+Steel Ring

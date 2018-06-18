@@ -32,3 +32,6 @@ Chaos Disposition
 # Labyrinth #
 Treasure Key
 Golden Key
+
+Opal Ring
+Steel Ring
