@@ -277,11 +277,9 @@ namespace Pickit.Core
         {
             try
             {
-                if (checkList.Contains(itemEntity.BaseName.ToLower()) && itemEntity.Rarity == rarity)
-                    return true;
+                if (checkList.Contains(itemEntity.BaseName) && itemEntity.Rarity == rarity) return true;
             }
-            catch
-            {
+            catch {
                 // ignored
             }
 
@@ -337,7 +335,7 @@ namespace Pickit.Core
 
                 #region Currency
 
-                if (Settings.AllCurrency && item.ClassName == "StackableCurrency")
+                if (Settings.AllCurrency && item.ClassName == "StackableCurrency" || item.ClassName == "DelveSocketableCurrency")
                 {
                     if (Settings.MaxScrollsToPickup)
                         if (item.BaseName == "Scroll of Wisdom" || item.BaseName == "Portal Scroll")
@@ -604,11 +602,11 @@ namespace Pickit.Core
             if (fileName == string.Empty) return null;
             var pickitFile = $@"{PluginDirectory}\{PickitRuleDirectory}\{fileName}.txt";
             if (!File.Exists(pickitFile)) return null;
-            var stringList = new List<string>();
+            var hashSet = new List<string>();
             var lines = File.ReadAllLines(pickitFile);
-            lines.Where(x => !string.IsNullOrWhiteSpace(x) && !x.StartsWith("#")).ForEach(x => stringList.Add(x.Trim().ToLowerInvariant()));
+            lines.Where(x => !string.IsNullOrWhiteSpace(x) && !x.StartsWith("#")).ForEach(x => hashSet.Add(x.Trim().ToLowerInvariant()));
             LogMessage($"Pickit :: (Re)Loaded - {fileName}", 5, Color.GreenYellow);
-            return stringList;
+            return hashSet;
         }
 
         public List<string> LoadClickit(string fileName)
@@ -616,11 +614,11 @@ namespace Pickit.Core
             if (fileName == string.Empty) return null;
             var pickitFile = $@"{PluginDirectory}\{ClickitRuleDirectory}\{fileName}.txt";
             if (!File.Exists(pickitFile)) return null;
-            var stringList = new List<string>();
+            var hashSet = new List<string>();
             var lines = File.ReadAllLines(pickitFile);
-            lines.Where(x => !string.IsNullOrWhiteSpace(x) && !x.StartsWith("#")).ForEach(x => stringList.Add(x.Trim().ToLowerInvariant()));
+            lines.Where(x => !string.IsNullOrWhiteSpace(x) && !x.StartsWith("#")).ForEach(x => hashSet.Add(x.Trim().ToLowerInvariant()));
             LogMessage($"Clickit :: (Re)Loaded - {fileName}", 5, Color.GreenYellow);
-            return stringList;
+            return hashSet;
         }
 
         #endregion

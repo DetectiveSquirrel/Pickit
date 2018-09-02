@@ -84,10 +84,14 @@ namespace Pickit.Core
 
             if (groundItem.HasComponent<Sockets>())
             {
-                var sockets = groundItem.GetComponent<Sockets>();
-                IsRGB = sockets.IsRGB;
-                Sockets = sockets.NumberOfSockets;
-                LargestLink = sockets.LargestLinkSize;
+                try
+                {
+                    var sockets = groundItem.GetComponent<Sockets>();
+                    IsRGB = sockets.IsRGB;
+                    Sockets = sockets.NumberOfSockets;
+                    LargestLink = sockets.LargestLinkSize;
+                }
+                catch { }
             }
 
             if (groundItem.HasComponent<Stack>())
