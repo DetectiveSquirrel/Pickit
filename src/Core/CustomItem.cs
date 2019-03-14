@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using PoeHUD.Models.Enums;
 using PoeHUD.Plugins;
 using PoeHUD.Poe;
 using PoeHUD.Poe.Components;
-using PoeHUD.Poe.Elements;
-using PoeHUD.Poe.EntityComponents;
+using PoeHUD.Poe.RemoteMemoryObjects;
 using Map = PoeHUD.Poe.Components.Map;
 
 namespace Pickit.Core
@@ -14,7 +13,7 @@ namespace Pickit.Core
     {
         public string BaseName;
         public string ClassName;
-        public ItemsOnGroundLabelElement CompleteItem;
+        public LabelOnGround CompleteItem;
         public Entity GroundItem;
         public int Height;
         public bool IsElder;
@@ -34,7 +33,7 @@ namespace Pickit.Core
 
         public CustomItem() { }
 
-        public CustomItem(ItemsOnGroundLabelElement item)
+        public CustomItem(LabelOnGround item)
         {
             CompleteItem = item;
             var groundItem = item.ItemOnGround.GetComponent<WorldItem>().ItemEntity;
