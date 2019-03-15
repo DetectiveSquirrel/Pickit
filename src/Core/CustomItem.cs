@@ -1,10 +1,10 @@
-using System.Collections.Generic;
-using System.Linq;
 using PoeHUD.Models.Enums;
 using PoeHUD.Plugins;
 using PoeHUD.Poe;
 using PoeHUD.Poe.Components;
 using PoeHUD.Poe.RemoteMemoryObjects;
+using System.Collections.Generic;
+using System.Linq;
 using Map = PoeHUD.Poe.Components.Map;
 
 namespace Pickit.Core

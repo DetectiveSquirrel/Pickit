@@ -22,7 +22,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using PoeHUD.Hud.Preload;
 
 namespace Pickit.Core
 {
@@ -277,7 +276,7 @@ namespace Pickit.Core
         {
             try
             {
-                if (checkList.Contains(itemEntity.BaseName) && itemEntity.Rarity == rarity) return true;
+                if (checkList.Contains(itemEntity.BaseName.ToLower()) && itemEntity.Rarity == rarity) return true;
             }
             catch {
                 // ignored
@@ -422,19 +421,24 @@ namespace Pickit.Core
 
             #region Rarity Rule Switch
 
+
             switch (itemEntity.Rarity)
             {
                 case ItemRarity.Normal:
-                    if (InCustomList(_normalRules, itemEntity, itemEntity.Rarity)) pickItemUp = true;
+                    if (InCustomList(_normalRules, itemEntity, itemEntity.Rarity))
+                        pickItemUp = true;
                     break;
                 case ItemRarity.Magic:
-                    if (InCustomList(_magicRules, itemEntity, itemEntity.Rarity)) pickItemUp = true;
+                    if (InCustomList(_magicRules, itemEntity, itemEntity.Rarity))
+                        pickItemUp = true;
                     break;
                 case ItemRarity.Rare:
-                    if (InCustomList(_rareRules, itemEntity, itemEntity.Rarity)) pickItemUp = true;
+                    if (InCustomList(_rareRules, itemEntity, itemEntity.Rarity))
+                        pickItemUp = true;
                     break;
                 case ItemRarity.Unique:
-                    if (InCustomList(_uniqueRules, itemEntity, itemEntity.Rarity)) pickItemUp = true;
+                    if (InCustomList(_uniqueRules, itemEntity, itemEntity.Rarity))
+                        pickItemUp = true;
                     break;
             }
 
