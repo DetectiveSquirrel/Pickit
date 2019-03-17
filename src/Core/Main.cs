@@ -345,7 +345,7 @@ namespace Pickit.Core
 
                 if (Settings.Sockets && item.Sockets >= Settings.TotalSockets.Value) return true;
                 if (Settings.Links && item.LargestLink >= Settings.LargestLink) return true;
-                if (Settings.RGB && item.IsRGB && item.Width <= Settings.RGBHeight && item.Height <= Settings.RGBWidth) return true;
+                if (Settings.RGB && item.IsRGB && item.Height <= Settings.RGBHeight && item.Width <= Settings.RGBWidth) return true;
 
                 #endregion
 
