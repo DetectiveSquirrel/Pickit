@@ -92,11 +92,14 @@ namespace Pickit.Core
         public RangeNode<int> RareWeaponHeight { get; set; }
         public RangeNode<int> RareWeaponilvl { get; set; }
         public EmptyNode LinkSocketRgbEmptyNode { get; set; }
+        public ToggleNode RareUnidOnly { get; set; } = true;
         public ToggleNode Sockets { get; set; }
         public RangeNode<int> TotalSockets { get; set; }
         public ToggleNode Links { get; set; }
         public RangeNode<int> LargestLink { get; set; }
         public ToggleNode RGB { get; set; }
+        public RangeNode<int> RGBWidth { get; set; } = new RangeNode<int>(2, 1, 2);
+        public RangeNode<int> RGBHeight { get; set; } = new RangeNode<int>(4, 1, 4);
         public EmptyNode AllOverridEmptyNode { get; set; }
         public ToggleNode PickUpEverything { get; set; }
         public ToggleNode AllDivs { get; set; }

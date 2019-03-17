@@ -130,6 +130,10 @@ namespace Pickit.Core
                 if (ImGui.TreeNode("Links/Sockets/RGB"))
                 {
                     Settings.RGB.Value = ImGuiExtension.Checkbox("RGB Items", Settings.RGB);
+                    Settings.RGBWidth.Value = ImGuiExtension.IntSlider("Maximum Width##RGBWidth", Settings.RGBWidth);
+                    Settings.RGBHeight.Value = ImGuiExtension.IntSlider("Maximum Height##RGBHeight", Settings.RGBHeight);
+                    ImGui.Spacing();
+
                     Settings.TotalSockets.Value = ImGuiExtension.IntSlider("##Sockets", Settings.TotalSockets);
                     ImGui.SameLine();
                     Settings.Sockets.Value = ImGuiExtension.Checkbox("Sockets", Settings.Sockets);
@@ -170,6 +174,7 @@ namespace Pickit.Core
                 ImGui.SetNextTreeNodeOpen(true);
                 if (ImGui.TreeNode("Rares"))
                 {
+                    Settings.RareUnidOnly.Value = ImGuiExtension.Checkbox("Pickup Unid Rares Only", Settings.RareUnidOnly);
                     Settings.RareJewels.Value = ImGuiExtension.Checkbox("Jewels", Settings.RareJewels);
                     Settings.RareRingsilvl.Value = ImGuiExtension.IntSlider("##RareRings", "Lowest iLvl", Settings.RareRingsilvl);
                     ImGui.SameLine();
@@ -305,15 +310,33 @@ namespace Pickit.Core
 
                 if (Settings.Rares && item.Rarity == ItemRarity.Rare)
                 {
-                    if (Settings.RareJewels && (item.ClassName == "Jewel" || item.ClassName == "AbyssJewel")) return true;
-                    if (Settings.RareRings && item.ClassName == "Ring" && item.ItemLevel >= Settings.RareRingsilvl) return true;
-                    if (Settings.RareAmulets && item.ClassName == "Amulet" && item.ItemLevel >= Settings.RareAmuletsilvl) return true;
-                    if (Settings.RareBelts && item.ClassName == "Belt" && item.ItemLevel >= Settings.RareBeltsilvl) return true;
-                    if (Settings.RareGloves && item.ClassName == "Gloves" && item.ItemLevel >= Settings.RareGlovesilvl) return true;
-                    if (Settings.RareBoots && item.ClassName == "Boots" && item.ItemLevel >= Settings.RareBootsilvl) return true;
-                    if (Settings.RareHelmets && item.ClassName == "Helmet" && item.ItemLevel >= Settings.RareHelmetsilvl) return true;
-                    if (Settings.RareArmour && item.ClassName == "Body Armour" && item.ItemLevel >= Settings.RareArmourilvl) return true;
-                    if (Settings.RareWeapon && item.IsWeapon && item.ItemLevel >= Settings.RareWeaponilvl && item.Width <= Settings.RareWeaponWidth && item.Height <= Settings.RareWeaponHeight) return true;
+                    if (Settings.RareUnidOnly.Value)
+                    {
+                        if (!item.IsIdentified)
+                        {
+                            if (Settings.RareJewels && (item.ClassName == "Jewel" || item.ClassName == "AbyssJewel")) return true;
+                            if (Settings.RareRings && item.ClassName == "Ring" && item.ItemLevel >= Settings.RareRingsilvl) return true;
+                            if (Settings.RareAmulets && item.ClassName == "Amulet" && item.ItemLevel >= Settings.RareAmuletsilvl) return true;
+                            if (Settings.RareBelts && item.ClassName == "Belt" && item.ItemLevel >= Settings.RareBeltsilvl) return true;
+                            if (Settings.RareGloves && item.ClassName == "Gloves" && item.ItemLevel >= Settings.RareGlovesilvl) return true;
+                            if (Settings.RareBoots && item.ClassName == "Boots" && item.ItemLevel >= Settings.RareBootsilvl) return true;
+                            if (Settings.RareHelmets && item.ClassName == "Helmet" && item.ItemLevel >= Settings.RareHelmetsilvl) return true;
+                            if (Settings.RareArmour && item.ClassName == "Body Armour" && item.ItemLevel >= Settings.RareArmourilvl) return true;
+                            if (Settings.RareWeapon && item.IsWeapon && item.ItemLevel >= Settings.RareWeaponilvl && item.Width <= Settings.RareWeaponWidth && item.Height <= Settings.RareWeaponHeight) return true;
+                        }
+                    }
+                    else
+                    {
+                        if (Settings.RareJewels && (item.ClassName == "Jewel" || item.ClassName == "AbyssJewel")) return true;
+                        if (Settings.RareRings && item.ClassName == "Ring" && item.ItemLevel >= Settings.RareRingsilvl) return true;
+                        if (Settings.RareAmulets && item.ClassName == "Amulet" && item.ItemLevel >= Settings.RareAmuletsilvl) return true;
+                        if (Settings.RareBelts && item.ClassName == "Belt" && item.ItemLevel >= Settings.RareBeltsilvl) return true;
+                        if (Settings.RareGloves && item.ClassName == "Gloves" && item.ItemLevel >= Settings.RareGlovesilvl) return true;
+                        if (Settings.RareBoots && item.ClassName == "Boots" && item.ItemLevel >= Settings.RareBootsilvl) return true;
+                        if (Settings.RareHelmets && item.ClassName == "Helmet" && item.ItemLevel >= Settings.RareHelmetsilvl) return true;
+                        if (Settings.RareArmour && item.ClassName == "Body Armour" && item.ItemLevel >= Settings.RareArmourilvl) return true;
+                        if (Settings.RareWeapon && item.IsWeapon && item.ItemLevel >= Settings.RareWeaponilvl && item.Width <= Settings.RareWeaponWidth && item.Height <= Settings.RareWeaponHeight) return true;
+                    }
                 }
 
                 #endregion
@@ -322,7 +345,7 @@ namespace Pickit.Core
 
                 if (Settings.Sockets && item.Sockets >= Settings.TotalSockets.Value) return true;
                 if (Settings.Links && item.LargestLink >= Settings.LargestLink) return true;
-                if (Settings.RGB && item.IsRGB) return true;
+                if (Settings.RGB && item.IsRGB && item.Width <= Settings.RGBHeight && item.Height <= Settings.RGBWidth) return true;
 
                 #endregion
 
