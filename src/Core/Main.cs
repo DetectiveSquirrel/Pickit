@@ -130,6 +130,8 @@ namespace Pickit.Core
                 if (ImGui.TreeNode("Links/Sockets/RGB"))
                 {
                     Settings.RGB.Value = ImGuiExtension.Checkbox("RGB Items", Settings.RGB);
+                    Settings.RGBMinWidth.Value = ImGuiExtension.IntSlider("Minimum Width##RGBMinWidth", Settings.RGBMinWidth);
+                    Settings.RGBMinHeight.Value = ImGuiExtension.IntSlider("Minimum Height##RGBMinHeight", Settings.RGBMinHeight);
                     Settings.RGBWidth.Value = ImGuiExtension.IntSlider("Maximum Width##RGBWidth", Settings.RGBWidth);
                     Settings.RGBHeight.Value = ImGuiExtension.IntSlider("Maximum Height##RGBHeight", Settings.RGBHeight);
                     ImGui.Spacing();
@@ -201,6 +203,10 @@ namespace Pickit.Core
                     Settings.RareWeaponilvl.Value = ImGuiExtension.IntSlider("##RareWeapons", "Lowest iLvl", Settings.RareWeaponilvl);
                     ImGui.SameLine();
                     Settings.RareWeapon.Value = ImGuiExtension.Checkbox("Weapons", Settings.RareWeapon);
+
+                    Settings.RareWeaponMinWidth.Value = ImGuiExtension.IntSlider("Minimum Width##RareWeaponWidth2", Settings.RareWeaponMinWidth);
+                    Settings.RareWeaponMinHeight.Value = ImGuiExtension.IntSlider("Minimum Height##RareWeaponHeight2", Settings.RareWeaponMinHeight);
+
                     Settings.RareWeaponWidth.Value = ImGuiExtension.IntSlider("Maximum Width##RareWeaponWidth", Settings.RareWeaponWidth);
                     Settings.RareWeaponHeight.Value = ImGuiExtension.IntSlider("Maximum Height##RareWeaponHeight", Settings.RareWeaponHeight);
                     ImGui.TreePop();
@@ -322,7 +328,9 @@ namespace Pickit.Core
                             if (Settings.RareBoots && item.ClassName == "Boots" && item.ItemLevel >= Settings.RareBootsilvl) return true;
                             if (Settings.RareHelmets && item.ClassName == "Helmet" && item.ItemLevel >= Settings.RareHelmetsilvl) return true;
                             if (Settings.RareArmour && item.ClassName == "Body Armour" && item.ItemLevel >= Settings.RareArmourilvl) return true;
-                            if (Settings.RareWeapon && item.IsWeapon && item.ItemLevel >= Settings.RareWeaponilvl && item.Width <= Settings.RareWeaponWidth && item.Height <= Settings.RareWeaponHeight) return true;
+                            if (Settings.RareWeapon && item.IsWeapon && item.ItemLevel >= Settings.RareWeaponilvl
+                                && item.Width >= Settings.RareWeaponMinWidth && item.Height >= Settings.RareWeaponMinHeight
+                                && item.Width <= Settings.RareWeaponWidth && item.Height <= Settings.RareWeaponHeight) return true;
                         }
                     }
                     else
@@ -335,7 +343,9 @@ namespace Pickit.Core
                         if (Settings.RareBoots && item.ClassName == "Boots" && item.ItemLevel >= Settings.RareBootsilvl) return true;
                         if (Settings.RareHelmets && item.ClassName == "Helmet" && item.ItemLevel >= Settings.RareHelmetsilvl) return true;
                         if (Settings.RareArmour && item.ClassName == "Body Armour" && item.ItemLevel >= Settings.RareArmourilvl) return true;
-                        if (Settings.RareWeapon && item.IsWeapon && item.ItemLevel >= Settings.RareWeaponilvl && item.Width <= Settings.RareWeaponWidth && item.Height <= Settings.RareWeaponHeight) return true;
+                        if (Settings.RareWeapon && item.IsWeapon && item.ItemLevel >= Settings.RareWeaponilvl
+                            && item.Width >= Settings.RareWeaponMinWidth && item.Height >= Settings.RareWeaponMinHeight
+                            && item.Width <= Settings.RareWeaponWidth && item.Height <= Settings.RareWeaponHeight) return true;
                     }
                 }
 
@@ -345,7 +355,7 @@ namespace Pickit.Core
 
                 if (Settings.Sockets && item.Sockets >= Settings.TotalSockets.Value) return true;
                 if (Settings.Links && item.LargestLink >= Settings.LargestLink) return true;
-                if (Settings.RGB && item.IsRGB && item.Height <= Settings.RGBHeight && item.Width <= Settings.RGBWidth) return true;
+                if (Settings.RGB && item.IsRGB && item.Height >= Settings.RGBMinHeight && item.Width >= Settings.RGBMinWidth && item.Height <= Settings.RGBHeight && item.Width <= Settings.RGBWidth) return true;
 
                 #endregion
 

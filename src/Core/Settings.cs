@@ -47,7 +47,7 @@ namespace Pickit.Core
             RareHelmetsilvl = new RangeNode<int>(1, 0, 100);
             RareWeapon = false;
             RareWeaponWidth = new RangeNode<int>(2, 1, 2);
-            RareWeaponHeight = new RangeNode<int>(3, 1, 4);
+            RareWeaponHeight = new RangeNode<int>(4, 1, 4);
             RareWeaponilvl = new RangeNode<int>(1, 0, 100);
             RareArmour = false;
             RareArmourilvl = new RangeNode<int>(1, 0, 100);
@@ -88,7 +88,9 @@ namespace Pickit.Core
         public ToggleNode RareArmour { get; set; }
         public RangeNode<int> RareArmourilvl { get; set; }
         public ToggleNode RareWeapon { get; set; }
-        public RangeNode<int> RareWeaponWidth{ get; set; }
+        public RangeNode<int> RareWeaponMinWidth { get; set; } = new RangeNode<int>(1, 1, 2);
+        public RangeNode<int> RareWeaponMinHeight { get; set; } = new RangeNode<int>(1, 1, 4);
+        public RangeNode<int> RareWeaponWidth { get; set; }
         public RangeNode<int> RareWeaponHeight { get; set; }
         public RangeNode<int> RareWeaponilvl { get; set; }
         public EmptyNode LinkSocketRgbEmptyNode { get; set; }
@@ -100,6 +102,8 @@ namespace Pickit.Core
         public ToggleNode RGB { get; set; }
         public RangeNode<int> RGBWidth { get; set; } = new RangeNode<int>(2, 1, 2);
         public RangeNode<int> RGBHeight { get; set; } = new RangeNode<int>(4, 1, 4);
+        public RangeNode<int> RGBMinWidth { get; set; } = new RangeNode<int>(1, 1, 2);
+        public RangeNode<int> RGBMinHeight { get; set; } = new RangeNode<int>(1, 1, 4);
         public EmptyNode AllOverridEmptyNode { get; set; }
         public ToggleNode PickUpEverything { get; set; }
         public ToggleNode AllDivs { get; set; }
