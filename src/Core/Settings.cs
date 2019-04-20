@@ -51,6 +51,7 @@ namespace Pickit.Core
             RareWeaponilvl = new RangeNode<int>(1, 0, 100);
             RareArmour = false;
             RareArmourilvl = new RangeNode<int>(1, 0, 100);
+
             PickUpEverything = false;
             NormalRuleFile = string.Empty;
             MagicRuleFile = string.Empty;
@@ -104,6 +105,10 @@ namespace Pickit.Core
         public RangeNode<int> RGBHeight { get; set; } = new RangeNode<int>(4, 1, 4);
         public RangeNode<int> RGBMinWidth { get; set; } = new RangeNode<int>(1, 1, 2);
         public RangeNode<int> RGBMinHeight { get; set; } = new RangeNode<int>(1, 1, 4);
+
+        public ToggleNode FracturedItemsToggle { get; set; } = true;
+        public RangeNode<int> MinimumFracturedLines { get; set; } = new RangeNode<int>(1, 1, 6); // I don't know maximum mods allowed to roll on something
+
         public EmptyNode AllOverridEmptyNode { get; set; }
         public ToggleNode PickUpEverything { get; set; }
         public ToggleNode AllDivs { get; set; }

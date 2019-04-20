@@ -112,9 +112,6 @@ namespace Pickit.Core
             if (ImGui.CollapsingHeader("Item Logic", TreeNodeFlags.Framed | TreeNodeFlags.DefaultOpen))
             {
                 ImGuiNative.igIndent();
-                Settings.ShaperItems.Value = ImGuiExtension.Checkbox("Pickup Shaper Items", Settings.ShaperItems);
-                ImGui.SameLine();
-                Settings.ElderItems.Value = ImGuiExtension.Checkbox("Pickup Elder Items", Settings.ElderItems);
 
 
                 if (ImGui.TreeNode("Scroll Limiter"))
@@ -148,6 +145,14 @@ namespace Pickit.Core
 
                 if (ImGui.TreeNode("Overrides"))
                 {
+                    Settings.ShaperItems.Value = ImGuiExtension.Checkbox("Pickup Shaper Items", Settings.ShaperItems);
+                    Settings.ElderItems.Value = ImGuiExtension.Checkbox("Pickup Elder Items", Settings.ElderItems);
+
+                    Settings.MinimumFracturedLines.Value = ImGuiExtension.IntSlider("##MinimumFracturedLines", "Minimum Fractured Lines", Settings.MinimumFracturedLines);
+                    ImGui.SameLine();
+                    Settings.FracturedItemsToggle.Value = ImGuiExtension.Checkbox("Fractured Lines", Settings.FracturedItemsToggle);
+
+
                     Settings.PickUpEverything.Value = ImGuiExtension.Checkbox("Pickup Everything", Settings.PickUpEverything);
                     Settings.AllDivs.Value = ImGuiExtension.Checkbox("All Divination Cards", Settings.AllDivs);
                     Settings.AllCurrency.Value = ImGuiExtension.Checkbox("All Currency", Settings.AllCurrency);
@@ -308,6 +313,14 @@ namespace Pickit.Core
                         return true;
                 if (Settings.ShaperItems)
                     if (item.IsShaper)
+                        return true;
+
+                #endregion
+
+                #region Fractured Mods
+
+                if (Settings.FracturedItemsToggle)
+                    if (item.FracturedMods >= Settings.MinimumFracturedLines)
                         return true;
 
                 #endregion

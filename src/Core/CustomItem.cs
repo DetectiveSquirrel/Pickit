@@ -30,6 +30,7 @@ namespace Pickit.Core
         public int Sockets;
         public int Width;
         public int Stack;
+        public int FracturedMods;
 
         public CustomItem() { }
 
@@ -79,6 +80,7 @@ namespace Pickit.Core
                 Rarity = mods.ItemRarity;
                 IsIdentified = mods.Identified;
                 ItemLevel = mods.ItemLevel;
+                FracturedMods = mods.FracturedMods;
             }
 
             if (groundItem.HasComponent<Sockets>())
