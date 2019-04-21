@@ -107,6 +107,7 @@ namespace Pickit.Core
         public RangeNode<int> RGBMinHeight { get; set; } = new RangeNode<int>(1, 1, 4);
 
         public ToggleNode FracturedItemsToggle { get; set; } = true;
+        public ToggleNode FracturedItemsToggleOverrideEverything { get; set; } = false;
         public RangeNode<int> MinimumFracturedLines { get; set; } = new RangeNode<int>(1, 1, 6); // I don't know maximum mods allowed to roll on something
 
         public EmptyNode AllOverridEmptyNode { get; set; }

@@ -151,6 +151,8 @@ namespace Pickit.Core
                     Settings.MinimumFracturedLines.Value = ImGuiExtension.IntSlider("##MinimumFracturedLines", "Minimum Fractured Lines", Settings.MinimumFracturedLines);
                     ImGui.SameLine();
                     Settings.FracturedItemsToggle.Value = ImGuiExtension.Checkbox("Fractured Lines", Settings.FracturedItemsToggle);
+                    ImGui.SameLine();
+                    Settings.FracturedItemsToggleOverrideEverything.Value = ImGuiExtension.Checkbox("[Override Pickup Everything]", Settings.FracturedItemsToggleOverrideEverything);
 
 
                     Settings.PickUpEverything.Value = ImGuiExtension.Checkbox("Pickup Everything", Settings.PickUpEverything);
@@ -459,9 +461,17 @@ namespace Pickit.Core
 
             var pickItemUp = false;
 
-            #region Force Pickup All
+            #region Force Pickup All + Overrides of pickup all
 
-            if (Settings.PickUpEverything) return true;
+            // Overrides before pickup everything, some users *cough* snapz uses pickup everything toggle
+            if (Settings.FracturedItemsToggle && Settings.FracturedItemsToggleOverrideEverything)
+            {
+                return itemEntity.FracturedMods >= Settings.MinimumFracturedLines;
+            }
+            if (Settings.PickUpEverything)
+            {
+                return true;
+            }
 
             #endregion
 
