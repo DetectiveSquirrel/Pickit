@@ -66,6 +66,9 @@ namespace Pickit.Core
             PickupTrans = false;
             PickupAug = false;
 
+            PickupVeiled = true;
+            PickupIncu = true;
+
         }
 
         public ToggleNode ShowPickupRange { get; set; } = false;
@@ -143,6 +146,9 @@ namespace Pickit.Core
         public ToggleNode PickupTrans { get; set; }
         public ToggleNode PickupAug { get; set; }
 
+        public ToggleNode PickupVeiled { get; set; }
+        public ToggleNode PickupIncu { get; set; }
+
 
         public string NormalRuleFile { get; set; } 
         public string MagicRuleFile { get; set; }
@@ -150,5 +156,6 @@ namespace Pickit.Core
         public string UniqueRuleFile { get; set; }
         public string QuestRuleFile { get; set; } = string.Empty;
         public string MiscRuleFile { get; set; } = string.Empty;
+
     }
 }

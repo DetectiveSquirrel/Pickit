@@ -109,6 +109,12 @@ namespace Pickit.Core
                 ImGuiNative.igUnindent();
             }
 
+            if (ImGui.CollapsingHeader("Special Items", TreeNodeFlags.Framed | TreeNodeFlags.DefaultOpen))
+
+            {
+                Settings.PickupScraps.Value = ImGuiExtension.Checkbox("Pickup Veiled Mods", Settings.PickupScraps);
+                Settings.PickupTrans.Value = ImGuiExtension.Checkbox("Pickup Incubators", Settings.PickupTrans);
+            }
             if (ImGui.CollapsingHeader("Item Logic", TreeNodeFlags.Framed | TreeNodeFlags.DefaultOpen))
             {
                 ImGuiNative.igIndent();
