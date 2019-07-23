@@ -31,6 +31,8 @@ namespace Pickit.Core
         public int Width;
         public int Stack;
         public int FracturedMods;
+        public bool IsVeiled;
+        public bool IsIncubator;
 
         public CustomItem() { }
 
@@ -74,6 +76,7 @@ namespace Pickit.Core
                 IsShaper = @base.isShaper;
             }
 
+
             if (groundItem.HasComponent<Mods>())
             {
                 var mods = groundItem.GetComponent<Mods>();
@@ -81,6 +84,11 @@ namespace Pickit.Core
                 IsIdentified = mods.Identified;
                 ItemLevel = mods.ItemLevel;
                 FracturedMods = mods.FracturedMods;
+                IsVeiled = false;
+                foreach(ItemMod m in mods.ItemMods)
+                {
+                    IsVeiled = IsVeiled | m.Name.Contains("Veiled");
+                }
             }
 
             if (groundItem.HasComponent<Sockets>())
@@ -100,6 +108,9 @@ namespace Pickit.Core
                 var stack = groundItem.GetComponent<Stack>();
                 Stack = stack.Size;
             }
+
+            if (ClassName.Contains("Incubator"))
+                IsIncubator = true;
 
             if (WeaponClass.Any(ClassName.Equals))
             {

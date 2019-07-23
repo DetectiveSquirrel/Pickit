@@ -112,8 +112,6 @@ namespace Pickit.Core
             if (ImGui.CollapsingHeader("Special Items", TreeNodeFlags.Framed | TreeNodeFlags.DefaultOpen))
 
             {
-                Settings.PickupScraps.Value = ImGuiExtension.Checkbox("Pickup Veiled Mods", Settings.PickupScraps);
-                Settings.PickupTrans.Value = ImGuiExtension.Checkbox("Pickup Incubators", Settings.PickupTrans);
             }
             if (ImGui.CollapsingHeader("Item Logic", TreeNodeFlags.Framed | TreeNodeFlags.DefaultOpen))
             {
@@ -166,6 +164,9 @@ namespace Pickit.Core
                     Settings.FracturedItemsToggle.Value = ImGuiExtension.Checkbox("Fractured Lines", Settings.FracturedItemsToggle);
                     ImGui.SameLine();
                     Settings.FracturedItemsToggleOverrideEverything.Value = ImGuiExtension.Checkbox("[Override Pickup Everything]", Settings.FracturedItemsToggleOverrideEverything);
+
+                    Settings.PickupVeiled.Value = ImGuiExtension.Checkbox("Pickup Veiled Mods", Settings.PickupScraps);
+                    Settings.PickupIncubator.Value = ImGuiExtension.Checkbox("Pickup Incubators", Settings.PickupTrans);
 
 
                     Settings.PickUpEverything.Value = ImGuiExtension.Checkbox("Pickup Everything", Settings.PickUpEverything);
@@ -340,6 +341,19 @@ namespace Pickit.Core
 
                 #endregion
 
+                #region Veiled
+                if (Settings.PickupVeiled)
+                    if (item.IsVeiled)
+                        return true;
+                #endregion
+
+                #region Incubator
+                if (Settings.PickupIncubator)
+                    if (item.IsIncubator)
+                        return true;
+                #endregion
+
+
                 #region Rare Overrides
 
                 if (Settings.Rares && item.Rarity == ItemRarity.Rare)
@@ -397,6 +411,24 @@ namespace Pickit.Core
 
                 if (Settings.AllCurrency && item.ClassName == "StackableCurrency" || item.ClassName == "DelveSocketableCurrency")
                 {
+                    if (item.BaseName == "Armourer's Scrap" && !Settings.PickupScraps)
+                        return false;
+
+                    if (item.BaseName == "Blacksmith's Whetstone" && !Settings.PickupScraps)
+                        return false;
+
+                    if (item.BaseName == "Orb of Transmutation" && !Settings.PickupTrans)
+                        return false;
+
+                    if (item.BaseName == "Orb of Augmentation" && !Settings.PickupAug)
+                        return false;
+
+                    if (item.BaseName == "Scroll of Wisdom" && !Settings.PickupIdent)
+                        return false;
+
+                    if (item.BaseName == "Portal Scroll" && !Settings.PickupPortal)
+                        return false;
+
                     if (Settings.MaxScrollsToPickup)
                         if (item.BaseName == "Scroll of Wisdom" || item.BaseName == "Portal Scroll")
                         {

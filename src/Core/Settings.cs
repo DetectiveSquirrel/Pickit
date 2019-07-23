@@ -67,7 +67,7 @@ namespace Pickit.Core
             PickupAug = false;
 
             PickupVeiled = true;
-            PickupIncu = true;
+            PickupIncubator = true;
 
         }
 
@@ -147,7 +147,7 @@ namespace Pickit.Core
         public ToggleNode PickupAug { get; set; }
 
         public ToggleNode PickupVeiled { get; set; }
-        public ToggleNode PickupIncu { get; set; }
+        public ToggleNode PickupIncubator { get; set; }
 
 
         public string NormalRuleFile { get; set; } 
