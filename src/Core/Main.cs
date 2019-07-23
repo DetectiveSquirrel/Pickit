@@ -117,8 +117,15 @@ namespace Pickit.Core
                 if (ImGui.TreeNode("Scroll Limiter"))
                 {
                     Settings.MaxScrollsToPickup.Value = ImGuiExtension.Checkbox("Set Limit Of Scrolls To Pickup || 0 = Disable Feature", Settings.MaxScrollsToPickup);
+                    Settings.PickupPortal.Value = ImGuiExtension.Checkbox("Pickup Portal Scrolls", Settings.PickupPortal);
                     Settings.MaxScrollsToPickupAmount_Portal.Value = ImGuiExtension.IntSlider("Portal Scroll", Settings.MaxScrollsToPickupAmount_Portal);
+
+                    Settings.PickupIdent.Value = ImGuiExtension.Checkbox("Pickup Wisdom Scrolls", Settings.PickupIdent);
                     Settings.MaxScrollsToPickupAmount_Ident.Value = ImGuiExtension.IntSlider("Scroll of Wisdom", Settings.MaxScrollsToPickupAmount_Ident);
+
+                    Settings.PickupScraps.Value = ImGuiExtension.Checkbox("Pickup Armourer Scraps/Blacksmith Whetstone", Settings.PickupScraps);
+                    Settings.PickupTrans.Value = ImGuiExtension.Checkbox("Pickup Orb of Transmutation", Settings.PickupTrans);
+                    Settings.PickupAug.Value = ImGuiExtension.Checkbox("Pickup Orb of Augmentation", Settings.PickupAug);
                     ImGui.TreePop();
                 }
 
@@ -388,7 +395,7 @@ namespace Pickit.Core
                         if (item.BaseName == "Scroll of Wisdom" || item.BaseName == "Portal Scroll")
                         {
                             List<Entity> stash = (from serverDataPlayerInventory in GameController.Game.IngameState.ServerData.PlayerInventories
-                                    where serverDataPlayerInventory.Inventory.InventType == InventoryTypeE.Main
+                                    where serverDataPlayerInventory.Inventory.InventType == InventoryTypeE.MainInventory
                                     from entity
                                         in serverDataPlayerInventory.Inventory.Items
                                     select entity)

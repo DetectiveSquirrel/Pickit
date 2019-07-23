@@ -59,6 +59,13 @@ namespace Pickit.Core
             UniqueRuleFile = string.Empty;
             LeftClickToggleNode = true;
             OverrideItemPickup = false;
+
+            PickupPortal = false;
+            PickupIdent = false;
+            PickupScraps = false;
+            PickupTrans = false;
+            PickupAug = false;
+
         }
 
         public ToggleNode ShowPickupRange { get; set; } = false;
@@ -130,6 +137,12 @@ namespace Pickit.Core
         public ToggleNode MaxScrollsToPickup { get; set; } = new ToggleNode(false);
         public RangeNode<int> MaxScrollsToPickupAmount_Portal { get; set; } = new RangeNode<int>(40, 0, 40);
         public RangeNode<int> MaxScrollsToPickupAmount_Ident { get; set; } = new RangeNode<int>(40, 0, 40);
+        public ToggleNode PickupPortal { get; set; }
+        public ToggleNode PickupIdent { get; set; }
+        public ToggleNode PickupScraps { get; set; }
+        public ToggleNode PickupTrans { get; set; }
+        public ToggleNode PickupAug { get; set; }
+
 
         public string NormalRuleFile { get; set; } 
         public string MagicRuleFile { get; set; }
