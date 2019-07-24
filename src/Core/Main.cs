@@ -109,10 +109,6 @@ namespace Pickit.Core
                 ImGuiNative.igUnindent();
             }
 
-            if (ImGui.CollapsingHeader("Special Items", TreeNodeFlags.Framed | TreeNodeFlags.DefaultOpen))
-
-            {
-            }
             if (ImGui.CollapsingHeader("Item Logic", TreeNodeFlags.Framed | TreeNodeFlags.DefaultOpen))
             {
                 ImGuiNative.igIndent();
