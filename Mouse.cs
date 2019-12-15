@@ -1,35 +1,25 @@
-﻿#region Header
-
-//-----------------------------------------------------------------
-//   Class:          MouseUtils
-//   Description:    Mouse control utils.
-//   Author:         Stridemann, nymann        Date: 08.26.2017
-//-----------------------------------------------------------------
-
-#endregion
-
 using System;
+using System.Collections;
 using System.Runtime.InteropServices;
 using System.Threading;
+using ExileCore.Shared;
 using SharpDX;
 
-namespace Pickit.Utilities
+namespace PickIt
 {
     public class Mouse
     {
+        public const int MOUSEEVENTF_MOVE = 0x0001;
         public const int MouseeventfLeftdown = 0x02;
         public const int MouseeventfLeftup = 0x04;
-
         public const int MouseeventfMiddown = 0x0020;
         public const int MouseeventfMidup = 0x0040;
-
         public const int MouseeventfRightdown = 0x0008;
         public const int MouseeventfRightup = 0x0010;
         public const int MouseEventWheel = 0x800;
 
         // 
         private const int MovementDelay = 10;
-
         private const int ClickDelay = 1;
 
         [DllImport("user32.dll")]
@@ -38,9 +28,11 @@ namespace Pickit.Utilities
         [DllImport("user32.dll")]
         private static extern void mouse_event(int dwFlags, int dx, int dy, int cButtons, int dwExtraInfo);
 
+        [DllImport("user32.dll")]
+        public static extern bool BlockInput(bool fBlockIt);
 
         /// <summary>
-        ///     Sets the cursor position relative to the game window.
+        /// Sets the cursor position relative to the game window.
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -52,19 +44,18 @@ namespace Pickit.Utilities
         }
 
         /// <summary>
-        ///     Sets the cursor position to the center of a given rectangle relative to the game window
+        /// Sets the cursor position to the center of a given rectangle relative to the game window
         /// </summary>
         /// <param name="position"></param>
         /// <param name="gameWindow"></param>
         /// <returns></returns>
         public static bool SetCurosPosToCenterOfRec(RectangleF position, RectangleF gameWindow)
         {
-            return SetCursorPos((int) (gameWindow.X + position.Center.X),
-                (int) (gameWindow.Y + position.Center.Y));
+            return SetCursorPos((int) (gameWindow.X + position.Center.X), (int) (gameWindow.Y + position.Center.Y));
         }
 
         /// <summary>
-        ///     Retrieves the cursor's position, in screen coordinates.
+        /// Retrieves the cursor's position, in screen coordinates.
         /// </summary>
         /// <see>See MSDN documentation for further information.</see>
         [DllImport("user32.dll")]
@@ -123,7 +114,7 @@ namespace Pickit.Utilities
         public static void LeftClick(int extraDelay)
         {
             LeftMouseDown();
-            Thread.Sleep(ClickDelay);
+            if (extraDelay > 0) Thread.Sleep(ClickDelay);
             LeftMouseUp();
         }
 
@@ -142,7 +133,6 @@ namespace Pickit.Utilities
                 mouse_event(MouseEventWheel, 0, 0, -(clicks * 120), 0);
         }
         ////////////////////////////////////////////////////////////
-
 
         [StructLayout(LayoutKind.Sequential)]
         public struct Point
@@ -179,6 +169,7 @@ namespace Pickit.Utilities
             stepVector2.Y = (end.Y - cursor.Y) / step;
             var fX = cursor.X;
             var fY = cursor.Y;
+
             for (var j = 0; j < step; j++)
             {
                 fX += +stepVector2.X;
@@ -202,104 +193,43 @@ namespace Pickit.Utilities
             SetCursorPos((int) vec.X, (int) vec.Y);
         }
 
-        #endregion
-
-
-        static Random random = new Random();
-        static int mouseSpeed = 5;
-
-        /*
-        public static void MoveMouse(Vector2 coord)
+        public static void MoveCursorToPosition(Vector2 vec)
         {
-            int rx = 10;
-            int ry = 10;
-
-            Point c = new Point();
-            GetCursorPos(out c);
-
-            coord.X += random.Next(rx);
-            coord.Y += random.Next(ry);
-
-            double randomSpeed = Math.Max((random.Next(mouseSpeed) / 2.0 + mouseSpeed) / 10.0, 0.1);
-
-            WindMouse(c.X, c.Y, coord.X, coord.Y, 9.0, 9.0, 10.0 / randomSpeed, 15.0 / randomSpeed, 10.0 * randomSpeed, 10.0 * randomSpeed);
-        }*/
-
-        /* Needs to be ran on its own thread otherwise it hangs up the rest of poehud.
-        static void WindMouse(double xs, double ys, double xe, double ye,
-            double gravity, double wind, double minWait, double maxWait,
-            double maxStep, double targetArea)
-        {
-
-            double dist, windX = 0, windY = 0, veloX = 0, veloY = 0, randomDist, veloMag, step;
-            int oldX, oldY, newX = (int)Math.Round(xs), newY = (int)Math.Round(ys);
-
-            double waitDiff = maxWait - minWait;
-            double sqrt2 = Math.Sqrt(2.0);
-            double sqrt3 = Math.Sqrt(3.0);
-            double sqrt5 = Math.Sqrt(5.0);
-
-            dist = Hypot(xe - xs, ye - ys);
-
-            while (dist > 1.0)
-            {
-
-                wind = Math.Min(wind, dist);
-
-                if (dist >= targetArea)
-                {
-                    int w = random.Next((int)Math.Round(wind) * 2 + 1);
-                    windX = windX / sqrt3 + (w - wind) / sqrt5;
-                    windY = windY / sqrt3 + (w - wind) / sqrt5;
-                }
-                else
-                {
-                    windX = windX / sqrt2;
-                    windY = windY / sqrt2;
-                    if (maxStep < 3)
-                        maxStep = random.Next(3) + 3.0;
-                    else
-                        maxStep = maxStep / sqrt5;
-                }
-
-                veloX += windX;
-                veloY += windY;
-                veloX = veloX + gravity * (xe - xs) / dist;
-                veloY = veloY + gravity * (ye - ys) / dist;
-
-                if (Hypot(veloX, veloY) > maxStep)
-                {
-                    randomDist = maxStep / 2.0 + random.Next((int)Math.Round(maxStep) / 2);
-                    veloMag = Hypot(veloX, veloY);
-                    veloX = (veloX / veloMag) * randomDist;
-                    veloY = (veloY / veloMag) * randomDist;
-                }
-
-                oldX = (int)Math.Round(xs);
-                oldY = (int)Math.Round(ys);
-                xs += veloX;
-                ys += veloY;
-                dist = Hypot(xe - xs, ye - ys);
-                newX = (int)Math.Round(xs);
-                newY = (int)Math.Round(ys);
-
-                if (oldX != newX || oldY != newY)
-                    SetCursorPos(newX, newY);
-
-                step = Hypot(xs - oldX, ys - oldY);
-                int wait = (int)Math.Round(waitDiff * (step / maxStep) + minWait);
-                Thread.Sleep(wait);
-            }
-
-            int endX = (int)Math.Round(xe);
-            int endY = (int)Math.Round(ye);
-            if (endX != newX || endY != newY)
-                SetCursorPos(endX, endY);
-        }*/
-
-        static double Hypot(double dx, double dy)
-        {
-            return Math.Sqrt(dx * dx + dy * dy);
+            SetCursorPos((int) vec.X, (int) vec.Y);
+            MouseMove();
         }
+
+        public static float speedMouse;
+
+        public static IEnumerator SetCursorPosHuman(Vector2 vec)
+        {
+            var step = (float) Math.Sqrt(Vector2.Distance(GetCursorPositionVector(), vec)) * speedMouse / 20;
+
+            if (step > 6)
+            {
+                for (var i = 0; i < step; i++)
+                {
+                    var vector2 = Vector2.SmoothStep(GetCursorPositionVector(), vec, i / step);
+                    SetCursorPos((int) vector2.X, (int) vector2.Y);
+                    yield return new WaitTime(1);
+                }
+            }
+            else
+                SetCursorPos(vec);
+        }
+
+        public static IEnumerator LeftClick()
+        {
+            LeftMouseDown();
+            yield return new WaitTime(2);
+            LeftMouseUp();
+        }
+
+        public static void MouseMove()
+        {
+            mouse_event(MOUSEEVENTF_MOVE, 0, 0, 0, 0);
+        }
+
+        #endregion
     }
 }
