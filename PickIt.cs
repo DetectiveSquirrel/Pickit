@@ -355,12 +355,18 @@ namespace PickIt
 
         public bool DoWePickThis(CustomItem itemEntity)
         {
-            LogMessage($"is meta item? {itemEntity.IsMetaItem}");
+            if (!itemEntity.IsValid)
+                return false;
+
             var pickItemUp = false;
+
 
             #region Force Pickup All
 
-            if (Settings.PickUpEverything) return true;
+            if (Settings.PickUpEverything)
+            {
+                return true;
+            }
 
             #endregion
 
@@ -413,8 +419,14 @@ namespace PickIt
 
             #endregion
 
+            #region Metamorph edit
+
             if (itemEntity.IsMetaItem)
+            {
                 pickItemUp = true;
+            }
+
+            #endregion 
 
             return pickItemUp;
         }
@@ -435,7 +447,7 @@ namespace PickIt
                     .Where(x => x.Address != 0 &&
                                 x.ItemOnGround?.Path != null &&
                                 x.IsVisible && x.Label.GetClientRectCache.Center.PointInRectangle(rect) &&
-                                (x.ItemOnGround.Path == morphPath || x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds <= 0))
+                                (x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds <= 0) || x.ItemOnGround?.Path == morphPath)
 
                     .Select(x => new CustomItem(x, GameController.Files,
                         x.ItemOnGround.GetComponent<Positioned>().GridPos
@@ -450,7 +462,7 @@ namespace PickIt
                     .Where(x => x.Address != 0 &&
                                 x.ItemOnGround?.Path != null &&
                                 x.IsVisible && x.Label.GetClientRectCache.Center.PointInRectangle(rect) &&
-                                (x.ItemOnGround.Path == morphPath || x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds <= 0))
+                                (x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds <= 0) || x.ItemOnGround?.Path == morphPath)
 
                     .Select(x => new CustomItem(x, GameController.Files,
                         x.ItemOnGround.GetComponent<Positioned>().GridPos
@@ -465,34 +477,9 @@ namespace PickIt
             if (pickUpThisItem.IsMetaItem ? pickUpThisItem?.WorldIcon != null : pickUpThisItem?.GroundItem != null) yield return TryToPickV2(pickUpThisItem);
             FullWork = true;
         }
-        private IEnumerator Metamorhosispicker()
-        {
-            if (!Input.GetKeyState(Settings.PickUpKey.Value) || !GameController.Window.IsForeground()) yield break;
-            var window = GameController.Window.GetWindowRectangleTimeCache;
-            var rect = new RectangleF(window.X, window.X, window.X + window.Width, window.Y + window.Height);
-            var playerPos = GameController.Player.GridPos;
-
-            List<CustomItem> currentLabels;
-
-                currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabels
-                    .Where(x => x.Address != 0 &&
-                                x.ItemOnGround?.GetComponent<WorldItem>()?.ItemEntity.Path != null &&
-                                x.IsVisible && x.Label.GetClientRectCache.Center.PointInRectangle(rect) &&
-                                (x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds <= 0))
-                    .Select(x => new CustomItem(x, GameController.Files,
-                        x.ItemOnGround.GetComponent<Positioned>().GridPos
-                            .Distance(playerPos), _weightsRules, true))
-                    .OrderByDescending(x => x.Weight).ThenBy(x => x.Distance).ToList();
-
-            GameController.Debug["PickIt"] = currentLabels;
-            var pickUpThisItem = currentLabels.FirstOrDefault(x => DoWePickThis(x) && x.Distance < Settings.PickupRange);
-            if (pickUpThisItem?.GroundItem != null) yield return TryToPickV2(pickUpThisItem);
-            FullWork = true;
-        }
 
         private IEnumerator TryToPickV2(CustomItem pickItItem)
         {
-            LogMessage($"is meta item? {pickItItem.IsMetaItem}");
             if (!pickItItem.IsValid)
             {
                 FullWork = true;

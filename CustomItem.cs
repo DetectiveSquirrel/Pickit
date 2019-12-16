@@ -18,7 +18,6 @@ namespace PickIt
 
         public CustomItem(LabelOnGround item, FilesContainer fs, float distance, Dictionary<string, int> weightsRules, bool isMetamorphItem = false)
         {
-            //isMetamorphItem = true;
             if (isMetamorphItem)
             {
                 IsMetaItem = true;
@@ -31,9 +30,8 @@ namespace PickIt
                 WorldIcon = worldIcon;
                 GroundItem = itemItemOnGround;
                 Path = GroundItem?.Path;
-                if (GroundItem == null) return;
 
-               if (Path != null && Path.Length < 1)
+                if (Path != null && Path.Length < 1)
                 {
                     DebugWindow.LogMsg($"World2: {worldIcon.Address:X} P: {Path}", 2);
                     DebugWindow.LogMsg($"Ground2: {GroundItem.Address:X} P {Path}", 2);
