@@ -610,16 +610,14 @@ namespace PickIt
                 }
 
                 Mouse.MoveCursorToPosition(vector2);
-                //yield return wait3ms;
-                Mouse.MoveCursorToPosition(vector2);
-                //yield return wait3ms;
-                yield return Mouse.LeftClick();
+                yield return wait3ms;
+
+                if (pickItItem.IsTargeted())
+                    yield return Mouse.LeftClick();
+
                 yield return toPick;
                 tryCount++;
             }
-
-            if (pickItItem.IsTargeted())
-                Input.Click(MouseButtons.Left);
 
             tryCount = 0;
 
