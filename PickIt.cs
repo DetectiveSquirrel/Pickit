@@ -524,7 +524,7 @@ namespace PickIt
                     .Where(x => x.Address != 0 &&
                                 x.ItemOnGround?.Path != null &&
                                 x.IsVisible && x.Label.GetClientRectCache.Center.PointInRectangle(rect) &&
-                                (x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds <= 0) || x.ItemOnGround?.Path == morphPath)
+                                x.CanPickUp && (x.MaxTimeForPickUp.TotalSeconds <= 0) || x.ItemOnGround?.Path == morphPath)
                     .Select(x => new CustomItem(x, GameController.Files,
                         x.ItemOnGround.DistancePlayer, _weightsRules, x.ItemOnGround?.Path == morphPath))
                     .OrderByDescending(x => x.Weight).ThenBy(x => x.Distance).ToList();
@@ -535,7 +535,7 @@ namespace PickIt
                     .Where(x => x.Address != 0 &&
                                 x.ItemOnGround?.Path != null &&
                                 x.IsVisible && x.Label.GetClientRectCache.Center.PointInRectangle(rect) &&
-                                (x.CanPickUp || x.MaxTimeForPickUp.TotalSeconds <= 0) || x.ItemOnGround?.Path == morphPath)
+                                x.CanPickUp && (x.MaxTimeForPickUp.TotalSeconds <= 0) || x.ItemOnGround?.Path == morphPath)
                     .Select(x => new CustomItem(x, GameController.Files,
                         x.ItemOnGround.DistancePlayer, _weightsRules, x.ItemOnGround?.Path == morphPath))
                     .OrderBy(x => x.Distance).ToList();
@@ -578,7 +578,7 @@ namespace PickIt
 
             var tryCount = 0;
 
-            while (!pickItItem.IsTargeted() && tryCount < 5)
+            while (!pickItItem.IsTargeted() && tryCount < 3)
             {
                 var completeItemLabel = pickItItem.LabelOnGround?.Label;
 
