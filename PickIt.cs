@@ -27,6 +27,8 @@ namespace PickIt
         private readonly Stopwatch _pickUpTimer = Stopwatch.StartNew();
         private readonly Stopwatch DebugTimer = Stopwatch.StartNew();
         private readonly WaitTime toPick = new WaitTime(1);
+        private readonly WaitTime wait1ms = new WaitTime(1);
+        private readonly WaitTime wait2ms = new WaitTime(2);
         private readonly WaitTime wait3ms = new WaitTime(3);
         private readonly WaitTime waitForNextTry = new WaitTime(1);
         private Vector2 _clickWindowOffset;
@@ -576,7 +578,7 @@ namespace PickIt
 
             var tryCount = 0;
 
-            while (!pickItItem.IsTargeted())
+            while (!pickItItem.IsTargeted() && tryCount < 5)
             {
                 var completeItemLabel = pickItItem.LabelOnGround?.Label;
 
@@ -610,9 +612,9 @@ namespace PickIt
                 }
 
                 Mouse.MoveCursorToPosition(vector2);
-                yield return wait3ms;
+                yield return wait2ms;
 
-                if (pickItItem.IsTargeted())
+                //if (pickItItem.IsTargeted())
                     yield return Mouse.LeftClick();
 
                 yield return toPick;
