@@ -193,8 +193,10 @@ namespace PickIt
             SetCursorPos((int) vec.X, (int) vec.Y);
         }
 
-        public static void MoveCursorToPosition(Vector2 vec)
+        public static void MoveCursorToPosition(Vector2 vec, RectangleF boundry)
         {
+            if (!boundry.Intersects(new RectangleF(vec.X, vec.Y, 3, 3))) return;
+
             SetCursorPos((int) vec.X, (int) vec.Y);
             MouseMove();
         }

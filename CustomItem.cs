@@ -106,6 +106,7 @@ namespace PickIt
                     "Bow",
                     "Claw",
                     "Dagger",
+                    "Rune Dagger",
                     "Sceptre",
                     "Staff",
                     "Wand"
@@ -122,6 +123,10 @@ namespace PickIt
                     var @base = GroundItem.GetComponent<Base>();
                     IsElder = @base.isElder;
                     IsShaper = @base.isShaper;
+                    IsHunter = @base.isHunter;
+                    IsRedeemer = @base.isRedeemer;
+                    IsCrusader = @base.isCrusader;
+                    IsWarlord = @base.isWarlord;
                 }
 
                 if (GroundItem.HasComponent<Mods>())
@@ -161,6 +166,10 @@ namespace PickIt
         public bool IsIdentified { get; }
         public bool IsRGB { get; }
         public bool IsShaper { get; }
+        public bool IsHunter { get; }
+        public bool IsRedeemer { get; }
+        public bool IsCrusader { get; }
+        public bool IsWarlord { get; }
         public bool IsWeapon { get; }
         public int ItemLevel { get; }
         public int LargestLink { get; }

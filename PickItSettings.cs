@@ -32,6 +32,10 @@ namespace PickIt
             GroundChests = new ToggleNode(false);
             ShaperItems = new ToggleNode(true);
             ElderItems = new ToggleNode(true);
+            HunterItems = new ToggleNode(true);
+            RedeemerItems = new ToggleNode(true);
+            CrusaderItems = new ToggleNode(true);
+            WarlordItems = new ToggleNode(true);
             FracturedItems = new ToggleNode(true);
             Rares = new ToggleNode(true);
             RareJewels = new ToggleNode(true);
@@ -61,6 +65,7 @@ namespace PickIt
             MagicRuleFile = string.Empty;
             RareRuleFile = string.Empty;
             UniqueRuleFile = string.Empty;
+            WeightRuleFile = string.Empty;
             LeftClickToggleNode = new ToggleNode(true);
             OverrideItemPickup = new ToggleNode(false);
             MouseSpeed = new RangeNode<float>(1, 0, 30);
@@ -73,6 +78,10 @@ namespace PickIt
         public RangeNode<int> ExtraDelay { get; set; }
         public ToggleNode ShaperItems { get; set; }
         public ToggleNode ElderItems { get; set; }
+        public ToggleNode HunterItems { get; set; }
+        public ToggleNode CrusaderItems { get; set; }
+        public ToggleNode WarlordItems { get; set; }
+        public ToggleNode RedeemerItems { get; set; }
         public ToggleNode FracturedItems { get; set; }
         public ToggleNode Rares { get; set; }
         public ToggleNode RareJewels { get; set; }
@@ -123,6 +132,7 @@ namespace PickIt
         public string MagicRuleFile { get; set; }
         public string RareRuleFile { get; set; }
         public string UniqueRuleFile { get; set; }
+        public string WeightRuleFile { get; set; }
         public RangeNode<float> MouseSpeed { get; set; }
         public ToggleNode ReturnMouseToBeforeClickPosition { get; set; } = new ToggleNode(true);
         public RangeNode<int> TimeBeforeNewClick { get; set; } = new RangeNode<int>(500, 0, 1500);
