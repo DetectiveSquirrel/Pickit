@@ -540,11 +540,11 @@ namespace PickIt
             }
 
             GameController.Debug["PickIt"] = currentLabels;
-            var pickUpThisItem = currentLabels.FirstOrDefault(x => DoWePickThis(x) && x.Distance < Settings.PickupRange);
-            if (pickUpThisItem.IsMetaItem ? pickUpThisItem?.WorldIcon != null : pickUpThisItem?.GroundItem != null)
-            {
+            var rectangleOfGameWindow = GameController.Window.GetWindowRectangleTimeCache;
+            rectangleOfGameWindow.Inflate(-36, -36);
+            var pickUpThisItem = currentLabels.FirstOrDefault(x => DoWePickThis(x) && x.Distance < Settings.PickupRange && x.GroundItem != null && rectangleOfGameWindow.Intersects(new RectangleF(x.LabelOnGround.Label.GetClientRectCache.Center.X, x.LabelOnGround.Label.GetClientRectCache.Center.Y, 3, 3)));
+
                 yield return TryToPickV2(pickUpThisItem);
-            }
 
             FullWork = true;
         }
@@ -563,7 +563,7 @@ namespace PickIt
 
             var oldMousePosition = Mouse.GetCursorPositionVector();
             _clickWindowOffset = rectangleOfGameWindow.TopLeft;
-            rectangleOfGameWindow.Inflate(-100, -100);
+            rectangleOfGameWindow.Inflate(-36, -36);
             centerOfItemLabel.X += rectangleOfGameWindow.Left;
             centerOfItemLabel.Y += rectangleOfGameWindow.Top;
 
@@ -602,9 +602,16 @@ namespace PickIt
 
                 var vector2 = clientRectCenter + _clickWindowOffset;
 
-                Mouse.MoveCursorToPosition(vector2, rectangleOfGameWindow);
+                if (!rectangleOfGameWindow.Intersects(new RectangleF(vector2.X, vector2.Y, 3, 3)))
+                {
+                    FullWork = true;
+                    LogMessage($"x,y outside game window. Label: {centerOfItemLabel} Window: {rectangleOfGameWindow}", 5, Color.Red);
+                    yield break;
+                }
+
+                Mouse.MoveCursorToPosition(vector2);
                 //yield return wait3ms;
-                Mouse.MoveCursorToPosition(vector2, rectangleOfGameWindow);
+                Mouse.MoveCursorToPosition(vector2);
                 //yield return wait3ms;
                 yield return Mouse.LeftClick();
                 yield return toPick;
