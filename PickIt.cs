@@ -613,7 +613,7 @@ namespace PickIt
                 Mouse.MoveCursorToPosition(vector2);
                 yield return wait2ms;
 
-                //if (pickItItem.IsTargeted())
+                if (pickItItem.IsTargeted())
                     yield return Mouse.LeftClick();
 
                 yield return toPick;
