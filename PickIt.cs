@@ -545,7 +545,7 @@ namespace PickIt
             var rectangleOfGameWindow = GameController.Window.GetWindowRectangleTimeCache;
             rectangleOfGameWindow.Inflate(-36, -36);
             var pickUpThisItem = currentLabels.FirstOrDefault(x => DoWePickThis(x) && x.Distance < Settings.PickupRange && x.GroundItem != null && rectangleOfGameWindow.Intersects(new RectangleF(x.LabelOnGround.Label.GetClientRectCache.Center.X, x.LabelOnGround.Label.GetClientRectCache.Center.Y, 3, 3)));
-
+            
                 yield return TryToPickV2(pickUpThisItem);
 
             FullWork = true;
@@ -568,7 +568,6 @@ namespace PickIt
             rectangleOfGameWindow.Inflate(-36, -36);
             centerOfItemLabel.X += rectangleOfGameWindow.Left;
             centerOfItemLabel.Y += rectangleOfGameWindow.Top;
-
             if (!rectangleOfGameWindow.Intersects(new RectangleF(centerOfItemLabel.X, centerOfItemLabel.Y, 3, 3)))
             {
                 FullWork = true;
@@ -578,7 +577,7 @@ namespace PickIt
 
             var tryCount = 0;
 
-            while (!pickItItem.IsTargeted() && tryCount < 3)
+            while (tryCount < 3)
             {
                 var completeItemLabel = pickItItem.LabelOnGround?.Label;
 
