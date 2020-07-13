@@ -56,7 +56,7 @@ namespace PickIt
 
         public PickIt()
         {
-            Name = "Nickit";
+            Name = "Pickit";
         }
 
         //https://stackoverflow.com/questions/826777/how-to-have-an-auto-incrementing-version-number-visual-studio
