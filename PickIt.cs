@@ -234,7 +234,8 @@ namespace PickIt
         {
             if (Input.GetKeyState(Keys.Escape)) pickItCoroutine.Pause();
 
-            if (Input.GetKeyState(Settings.PickUpKey.Value))
+            if (true)
+            //if (Input.GetKeyState(Settings.PickUpKey.Value))
             {
                 DebugTimer.Restart();
 
@@ -510,7 +511,7 @@ namespace PickIt
 
         private IEnumerator FindItemToPick()
         {
-            if (!Input.GetKeyState(Settings.PickUpKey.Value) || !GameController.Window.IsForeground()) yield break;
+            if (!GameController.Window.IsForeground()) yield break;
             var window = GameController.Window.GetWindowRectangleTimeCache;
             var rect = new RectangleF(window.X, window.X, window.X + window.Width, window.Y + window.Height);
             var playerPos = GameController.Player.GridPos;
@@ -546,9 +547,23 @@ namespace PickIt
             rectangleOfGameWindow.Inflate(-36, -36);
             var pickUpThisItem = currentLabels.FirstOrDefault(x => DoWePickThis(x) && x.Distance < Settings.PickupRange && x.GroundItem != null && rectangleOfGameWindow.Intersects(new RectangleF(x.LabelOnGround.Label.GetClientRectCache.Center.X, x.LabelOnGround.Label.GetClientRectCache.Center.Y, 3, 3)));
             
+            if (Input.GetKeyState(Settings.PickUpKey.Value) ||
+                CanLazyPick(pickUpThisItem))
+            {
                 yield return TryToPickV2(pickUpThisItem);
-
-            FullWork = true;
+                FullWork = true;
+            }
+        }
+        
+        private bool CanLazyPick(CustomItem item)
+        {
+            var itemPos = item.LabelOnGround.ItemOnGround.Pos;
+            var playerPos = GameController.Player.Pos;
+            if (Math.Abs(itemPos.Z - playerPos.Z) > 50) return false;
+            var dx = itemPos.X - playerPos.X;
+            var dy = itemPos.Y - playerPos.Y;
+            if (dx * dx + dy * dy > 275 * 275) return false;
+            return true;
         }
 
         private IEnumerator TryToPickV2(CustomItem pickItItem)
