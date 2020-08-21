@@ -106,6 +106,8 @@ namespace PickIt
         public override void DrawSettings()
         {
             Settings.LazyLooting.Value = ImGuiExtension.Checkbox("Use Lazy Looting", Settings.LazyLooting);
+            Settings.LazyLootingPauseKey.Value = ImGuiExtension.HotkeySelector("Pause lazy looting for 2 sec: " + Settings.LazyLootingPauseKey.Value, Settings.LazyLootingPauseKey);
+            
             ImGui.BulletText($"v{PluginVersion}");
             ImGui.BulletText($"Last Updated: {buildDate}");
             Settings.PickUpKey = ImGuiExtension.HotkeySelector("Pickup Key: " + Settings.PickUpKey.Value.ToString(), Settings.PickUpKey);
@@ -231,8 +233,11 @@ namespace PickIt
             }
         }
 
+        private DateTime DisableLazyLootingTill { get; set; }
+
         public override Job Tick()
         {
+            if (Input.GetKeyState(Settings.LazyLootingPauseKey)) DisableLazyLootingTill = DateTime.Now.AddSeconds(2);
             if (Input.GetKeyState(Keys.Escape)) pickItCoroutine.Pause();
 
             if (true)
@@ -559,6 +564,7 @@ namespace PickIt
         private bool CanLazyLoot(CustomItem item)
         {
             if (!Settings.LazyLooting) return false;
+            if (DisableLazyLootingTill > DateTime.Now) return false;
             if (item.Rarity == ItemRarity.Rare && item.Width * item.Height > 1) return false;
             var itemPos = item.LabelOnGround.ItemOnGround.Pos;
             var playerPos = GameController.Player.Pos;
