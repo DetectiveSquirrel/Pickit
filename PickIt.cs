@@ -105,6 +105,7 @@ namespace PickIt
 
         public override void DrawSettings()
         {
+            Settings.LazyLooting.Value = ImGuiExtension.Checkbox("Use Lazy Looting", Settings.LazyLooting);
             ImGui.BulletText($"v{PluginVersion}");
             ImGui.BulletText($"Last Updated: {buildDate}");
             Settings.PickUpKey = ImGuiExtension.HotkeySelector("Pickup Key: " + Settings.PickUpKey.Value.ToString(), Settings.PickUpKey);
@@ -548,15 +549,17 @@ namespace PickIt
             var pickUpThisItem = currentLabels.FirstOrDefault(x => DoWePickThis(x) && x.Distance < Settings.PickupRange && x.GroundItem != null && rectangleOfGameWindow.Intersects(new RectangleF(x.LabelOnGround.Label.GetClientRectCache.Center.X, x.LabelOnGround.Label.GetClientRectCache.Center.Y, 3, 3)));
             
             if (Input.GetKeyState(Settings.PickUpKey.Value) ||
-                CanLazyPick(pickUpThisItem))
+                CanLazyLoot(pickUpThisItem))
             {
                 yield return TryToPickV2(pickUpThisItem);
                 FullWork = true;
             }
         }
         
-        private bool CanLazyPick(CustomItem item)
+        private bool CanLazyLoot(CustomItem item)
         {
+            if (!Settings.LazyLooting) return false;
+            if (item.Rarity == ItemRarity.Rare && item.Width * item.Height > 1) return false;
             var itemPos = item.LabelOnGround.ItemOnGround.Pos;
             var playerPos = GameController.Player.Pos;
             if (Math.Abs(itemPos.Z - playerPos.Z) > 50) return false;
