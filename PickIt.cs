@@ -105,9 +105,6 @@ namespace PickIt
 
         public override void DrawSettings()
         {
-            Settings.LazyLooting.Value = ImGuiExtension.Checkbox("Use Lazy Looting", Settings.LazyLooting);
-            Settings.LazyLootingPauseKey.Value = ImGuiExtension.HotkeySelector("Pause lazy looting for 2 sec: " + Settings.LazyLootingPauseKey.Value, Settings.LazyLootingPauseKey);
-            
             ImGui.BulletText($"v{PluginVersion}");
             ImGui.BulletText($"Last Updated: {buildDate}");
             Settings.PickUpKey = ImGuiExtension.HotkeySelector("Pickup Key: " + Settings.PickUpKey.Value.ToString(), Settings.PickUpKey);
@@ -121,6 +118,8 @@ namespace PickIt
             Settings.TimeBeforeNewClick.Value = ImGuiExtension.IntSlider("Time wait for new click", Settings.TimeBeforeNewClick);
             //Settings.OverrideItemPickup.Value = ImGuiExtension.Checkbox("Item Pickup Override", Settings.OverrideItemPickup); ImGui.SameLine();
             //ImGuiExtension.ToolTip("Override item.CanPickup\n\rDO NOT enable this unless you know what you're doing!");
+            Settings.LazyLooting.Value = ImGuiExtension.Checkbox("Use Lazy Looting", Settings.LazyLooting);
+            Settings.LazyLootingPauseKey.Value = ImGuiExtension.HotkeySelector("Pause lazy looting for 2 sec: " + Settings.LazyLootingPauseKey.Value, Settings.LazyLootingPauseKey);
             
             var tempRef = false;
             if (ImGui.CollapsingHeader("Pickit Rules", ImGuiTreeNodeFlags.Framed | ImGuiTreeNodeFlags.DefaultOpen))
@@ -240,8 +239,8 @@ namespace PickIt
             if (Input.GetKeyState(Settings.LazyLootingPauseKey)) DisableLazyLootingTill = DateTime.Now.AddSeconds(2);
             if (Input.GetKeyState(Keys.Escape)) pickItCoroutine.Pause();
 
-            if (true)
-            //if (Input.GetKeyState(Settings.PickUpKey.Value))
+            if (Input.GetKeyState(Settings.PickUpKey.Value) ||
+                CanLazyLoot())
             {
                 DebugTimer.Restart();
 
@@ -554,24 +553,45 @@ namespace PickIt
             var pickUpThisItem = currentLabels.FirstOrDefault(x => DoWePickThis(x) && x.Distance < Settings.PickupRange && x.GroundItem != null && rectangleOfGameWindow.Intersects(new RectangleF(x.LabelOnGround.Label.GetClientRectCache.Center.X, x.LabelOnGround.Label.GetClientRectCache.Center.Y, 3, 3)));
             
             if (Input.GetKeyState(Settings.PickUpKey.Value) ||
-                CanLazyLoot(pickUpThisItem))
+                CanLazyLoot() && ShouldLazyLoot(pickUpThisItem))
             {
                 yield return TryToPickV2(pickUpThisItem);
                 FullWork = true;
             }
         }
         
-        private bool CanLazyLoot(CustomItem item)
+        /// <summary>
+        /// LazyLoot item independent checks
+        /// </summary>
+        /// <returns></returns>
+        private bool CanLazyLoot()
         {
             if (!Settings.LazyLooting) return false;
             if (DisableLazyLootingTill > DateTime.Now) return false;
-            if (item.Rarity == ItemRarity.Rare && item.Width * item.Height > 1) return false;
+            
+            return true;
+        }
+        
+        /// <summary>
+        /// LazyLoot item dependent checks
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        private bool ShouldLazyLoot(CustomItem item)
+        {
             var itemPos = item.LabelOnGround.ItemOnGround.Pos;
             var playerPos = GameController.Player.Pos;
             if (Math.Abs(itemPos.Z - playerPos.Z) > 50) return false;
             var dx = itemPos.X - playerPos.X;
             var dy = itemPos.Y - playerPos.Y;
             if (dx * dx + dy * dy > 275 * 275) return false;
+
+            if (item.IsElder || item.IsFractured || item.IsShaper ||
+                item.IsHunter || item.IsCrusader || item.IsRedeemer || item.IsWarlord)
+                return true;
+            
+            if (item.Rarity == ItemRarity.Rare && item.Width * item.Height > 1) return false;
+            
             return true;
         }
 
