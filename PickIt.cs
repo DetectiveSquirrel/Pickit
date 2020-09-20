@@ -269,7 +269,7 @@ namespace PickIt
             if (DebugTimer.ElapsedMilliseconds > 300)
             {
                 FullWork = true;
-                LogMessage("Error pick it stop after time limit 300 ms", 1);
+                //LogMessage("Error pick it stop after time limit 300 ms", 1);
                 DebugTimer.Reset();
             }
             //Graphics.DrawText($@"PICKIT :: Debug Tick Timer ({DebugTimer.ElapsedMilliseconds}ms)", new Vector2(100, 100), FontAlign.Left);
@@ -612,7 +612,7 @@ namespace PickIt
             if (!pickItItem.IsValid)
             {
                 FullWork = true;
-                LogMessage("PickItem is not valid.", 5, Color.Red);
+                //LogMessage("PickItem is not valid.", 5, Color.Red);
                 yield break;
             }
 
@@ -627,7 +627,7 @@ namespace PickIt
             if (!rectangleOfGameWindow.Intersects(new RectangleF(centerOfItemLabel.X, centerOfItemLabel.Y, 3, 3)))
             {
                 FullWork = true;
-                LogMessage($"Label outside game window. Label: {centerOfItemLabel} Window: {rectangleOfGameWindow}", 5, Color.Red);
+                //LogMessage($"Label outside game window. Label: {centerOfItemLabel} Window: {rectangleOfGameWindow}", 5, Color.Red);
                 yield break;
             }
 
@@ -641,11 +641,11 @@ namespace PickIt
                 {
                     if (tryCount > 0)
                     {
-                        LogMessage("Probably item already picked.", 3);
+                        //LogMessage("Probably item already picked.", 3);
                         yield break;
                     }
 
-                    LogError("Label for item not found.", 5);
+                    //LogError("Label for item not found.", 5);
                     yield break;
                 }
 
@@ -662,7 +662,7 @@ namespace PickIt
                 if (!rectangleOfGameWindow.Intersects(new RectangleF(vector2.X, vector2.Y, 3, 3)))
                 {
                     FullWork = true;
-                    LogMessage($"x,y outside game window. Label: {centerOfItemLabel} Window: {rectangleOfGameWindow}", 5, Color.Red);
+                    //LogMessage($"x,y outside game window. Label: {centerOfItemLabel} Window: {rectangleOfGameWindow}", 5, Color.Red);
                     yield break;
                 }
 
