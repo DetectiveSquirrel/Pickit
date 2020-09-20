@@ -53,6 +53,7 @@ namespace PickIt
                     Width = baseItemType.Width;
                     Height = baseItemType.Height;
                     if (weightsRules.TryGetValue(BaseName, out var w)) Weight = w;
+                    if (ClassName.StartsWith("Heist")) IsHeist = true;
                 }
 
                 IsValid = true;
@@ -92,6 +93,7 @@ namespace PickIt
                     Width = baseItemType.Width;
                     Height = baseItemType.Height;
                     if (weightsRules.TryGetValue(BaseName, out var w)) Weight = w;
+                    if (ClassName.StartsWith("Heist")) IsHeist = true;
                 }
 
                 var WeaponClass = new List<string>
@@ -170,6 +172,7 @@ namespace PickIt
         public bool IsRedeemer { get; }
         public bool IsCrusader { get; }
         public bool IsWarlord { get; }
+        public bool IsHeist { get; }
         public bool IsWeapon { get; }
         public int ItemLevel { get; }
         public int LargestLink { get; }

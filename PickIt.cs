@@ -229,6 +229,8 @@ namespace PickIt
                     Settings.ItemCells.Value = ImGuiExtension.IntSlider("Maximum Cells##RareWeaponCell", Settings.ItemCells);
                     ImGui.TreePop();
                 }
+
+                Settings.HeistItems.Value = ImGuiExtension.Checkbox("Heist Items", Settings.HeistItems);
             }
         }
 
@@ -278,7 +280,10 @@ namespace PickIt
 
         public bool InCustomList(HashSet<string> checkList, CustomItem itemEntity, ItemRarity rarity)
         {
-            if (checkList.Contains(itemEntity.BaseName) && itemEntity.Rarity == rarity) return true;
+            if (checkList.Contains(itemEntity.BaseName) && itemEntity.Rarity == rarity)
+                return true;
+            if (checkList.Contains(itemEntity.ClassName) && itemEntity.Rarity == rarity)
+                return true;
             return false;
         }
 
@@ -317,6 +322,13 @@ namespace PickIt
                 }
 
                 #endregion
+
+
+                if (Settings.HeistItems)
+                {
+                    if (item.IsHeist)
+                        return true;
+                }
 
                 #region Influenced
 
@@ -587,7 +599,7 @@ namespace PickIt
             if (dx * dx + dy * dy > 275 * 275) return false;
 
             if (item.IsElder || item.IsFractured || item.IsShaper ||
-                item.IsHunter || item.IsCrusader || item.IsRedeemer || item.IsWarlord)
+                item.IsHunter || item.IsCrusader || item.IsRedeemer || item.IsWarlord || item.IsHeist)
                 return true;
             
             if (item.Rarity == ItemRarity.Rare && item.Width * item.Height > 1) return false;
