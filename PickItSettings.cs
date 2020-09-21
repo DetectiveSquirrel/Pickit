@@ -29,6 +29,8 @@ namespace PickIt
             QuestItems = new ToggleNode(true);
             Gems = new ToggleNode(true);
             GemQuality = new RangeNode<int>(1, 0, 20);
+            Flasks = new ToggleNode(true);
+            FlasksQuality = new RangeNode<int>(1, 0, 20);
             GroundChests = new ToggleNode(false);
             ShaperItems = new ToggleNode(true);
             ElderItems = new ToggleNode(true);
@@ -126,6 +128,8 @@ namespace PickIt
         public ToggleNode MapFragments { get; set; }
         public ToggleNode Gems { get; set; }
         public RangeNode<int> GemQuality { get; set; }
+        public ToggleNode Flasks { get; set; }
+        public RangeNode<int> FlasksQuality { get; set; }
         public ToggleNode QuestItems { get; set; }
         public ToggleNode GroundChests { get; set; }
         public ToggleNode LeftClickToggleNode { get; set; }

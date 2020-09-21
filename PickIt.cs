@@ -76,10 +76,11 @@ namespace PickIt
             _workCoroutine = new WaitTime(Settings.ExtraDelay);
             Settings.ExtraDelay.OnValueChanged += (sender, i) => _workCoroutine = new WaitTime(i);
             LoadRuleFiles();
-            LoadCustomItems();
+            //LoadCustomItems();
             return true;
         }
 
+        // bad idea to add hard coded pickups.
         private void LoadCustomItems()
         {
             _customItems.Add("Treasure Key");
@@ -187,6 +188,10 @@ namespace PickIt
                     Settings.GemQuality.Value = ImGuiExtension.IntSlider("##Gems", "Lowest Quality", Settings.GemQuality);
                     ImGui.SameLine();
                     Settings.Gems.Value = ImGuiExtension.Checkbox("Gems", Settings.Gems);
+
+                    Settings.FlasksQuality.Value = ImGuiExtension.IntSlider("##Flasks", "Lowest Quality", Settings.FlasksQuality);
+                    ImGui.SameLine();
+                    Settings.Flasks.Value = ImGuiExtension.Checkbox("Flasks", Settings.Flasks);
                     ImGui.Separator();
                     ImGui.TreePop();
                 }
@@ -411,9 +416,10 @@ namespace PickIt
 
                 #endregion
 
-                #region Skill Gems
+                #region Qualiity Rules
 
                 if (Settings.Gems && item.Quality >= Settings.GemQuality.Value && item.ClassName.Contains("Skill Gem")) return true;
+                if (Settings.Flasks && item.Quality >= Settings.FlasksQuality.Value && item.ClassName.Contains("Flask")) return true;
 
                 #endregion
 
@@ -424,10 +430,6 @@ namespace PickIt
                 #endregion
 
                 #region Custom Rules
-                if (_customItems.Contains(item.BaseName))
-                    return true;
-                if (item.Quality >= 1 && item.ClassName.Contains("Flask"))
-                    return true;
                 if (item.BaseName.Contains("Watchstone"))
                     return true;
                 if (item.BaseName.Contains("Incubator"))
