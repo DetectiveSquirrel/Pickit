@@ -557,8 +557,6 @@ namespace PickIt
 
                 var argSerialised = JsonConvert.SerializeObject(args);
                 FullRareSetManagerData = JsonConvert.DeserializeObject<FRSetManagerPublishInformation>(argSerialised);
-
-                LogMessage(args.GetType().ToString());
             }
         }
 
