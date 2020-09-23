@@ -143,7 +143,7 @@ namespace PickIt
         public ToggleNode ReturnMouseToBeforeClickPosition { get; set; } = new ToggleNode(true);
         public RangeNode<int> TimeBeforeNewClick { get; set; } = new RangeNode<int>(500, 0, 1500);
         public ToggleNode UseWeight { get; set; } = new ToggleNode(false);
-        public ToggleNode LazyLooting { get; set; } = new ToggleNode(true);
+        public ToggleNode LazyLooting { get; set; } = new ToggleNode(false);
         public HotkeyNode LazyLootingPauseKey { get; set; } = new HotkeyNode(Keys.Space);
 
         public ToggleNode FullRareSetManagerOverride { get; set; } = new ToggleNode(false); 

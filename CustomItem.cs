@@ -148,7 +148,10 @@ namespace PickIt
                     LargestLink = sockets.LargestLinkSize;
                 }
 
-                if (WeaponClass.Any(ClassName.Equals)) IsWeapon = true;
+                if (GroundItem.HasComponent<Weapon>())
+                {
+                    IsWeapon = true;
+                }
 
                 MapTier = GroundItem.HasComponent<Map>() ? GroundItem.GetComponent<Map>().Tier : 0;
                 IsValid = true;
