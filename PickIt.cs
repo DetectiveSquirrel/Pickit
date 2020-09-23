@@ -220,18 +220,25 @@ namespace PickIt
                     ImGui.SameLine();
                     Settings.RareArmour.Value = ImGuiExtension.Checkbox("Armours", Settings.RareArmour);
                     ImGui.Spacing();
+                    ImGui.Spacing();
+                    ImGui.Spacing();
+                    Settings.RareShieldilvl.Value = ImGuiExtension.IntSlider("##Shields", "Lowest iLvl", Settings.RareShieldilvl);
+                    ImGui.SameLine();
+                    Settings.RareShield.Value = ImGuiExtension.Checkbox("Shields", Settings.RareShield);
+                    Settings.RareShieldWidth.Value = ImGuiExtension.IntSlider("Maximum Width##RareShieldWidth", Settings.RareShieldWidth);
+                    Settings.RareShieldHeight.Value = ImGuiExtension.IntSlider("Maximum Height##RareShieldHeight", Settings.RareShieldHeight);
+                    ImGui.Spacing();
+                    ImGui.Spacing();
+                    ImGui.Spacing();
                     Settings.RareWeaponilvl.Value = ImGuiExtension.IntSlider("##RareWeapons", "Lowest iLvl", Settings.RareWeaponilvl);
                     ImGui.SameLine();
                     Settings.RareWeapon.Value = ImGuiExtension.Checkbox("Weapons", Settings.RareWeapon);
-                    Settings.RareShieldilvl.Value = ImGuiExtension.IntSlider("##Shields", "Lowest iLvl", Settings.RareWeaponilvl);
-                    ImGui.SameLine();
-                    Settings.RareShield.Value = ImGuiExtension.Checkbox("Shields", Settings.RareWeapon);
                     Settings.RareWeaponWidth.Value = ImGuiExtension.IntSlider("Maximum Width##RareWeaponWidth", Settings.RareWeaponWidth);
                     Settings.RareWeaponHeight.Value = ImGuiExtension.IntSlider("Maximum Height##RareWeaponHeight", Settings.RareWeaponHeight);
-                    Settings.ItemCells.Value = ImGuiExtension.IntSlider("Maximum Cells##RareWeaponCell", Settings.ItemCells);
                     if (ImGui.TreeNode("Full Rare Set Manager Integration##FRSMI"))
                     {
                         Settings.FullRareSetManagerOverride.Value = ImGuiExtension.Checkbox("Override Rare Pickup with Full Rare Set Managers' needed pieces", Settings.FullRareSetManagerOverride);
+                        Settings.FullRareSetManagerOverrideAllowIdentifiedItems.Value = ImGuiExtension.Checkbox("Pickup Identified items?", Settings.FullRareSetManagerOverrideAllowIdentifiedItems);
                         ImGui.TreePop();
                     }
                     ImGui.TreePop();
@@ -375,14 +382,20 @@ namespace PickIt
                     {
                         var setData = FullRareSetManagerData;
                         var maxSetWanted = setData.WantedSets;
-                        if (Settings.RareRings && item.ClassName == "Ring" && setData.GatheredRings < maxSetWanted) return true;
-                        if (Settings.RareAmulets && item.ClassName == "Amulet" && setData.GatheredAmulets < maxSetWanted) return true;
-                        if (Settings.RareBelts && item.ClassName == "Belt" && setData.GatheredBelts < maxSetWanted) return true;
-                        if (Settings.RareGloves && item.ClassName == "Gloves" && setData.GatheredGloves < maxSetWanted) return true;
-                        if (Settings.RareBoots && item.ClassName == "Boots" && setData.GatheredBoots < maxSetWanted) return true;
-                        if (Settings.RareHelmets && item.ClassName == "Helmet" && setData.GatheredHelmets < maxSetWanted) return true;
-                        if (Settings.RareArmour && item.ClassName == "Body Armour" && setData.GatheredBodyArmors < maxSetWanted) return true;
-                        if (Settings.RareWeapon && item.IsWeapon && setData.GatheredWeapons < maxSetWanted) return true;
+
+                        if (item.IsIdentified && Settings.FullRareSetManagerOverrideAllowIdentifiedItems.Value)
+                            return false;
+
+                            if (Settings.RareRings && item.ClassName == "Ring" && setData.GatheredRings < maxSetWanted) return true;
+                            if (Settings.RareAmulets && item.ClassName == "Amulet" && setData.GatheredAmulets < maxSetWanted) return true;
+                            if (Settings.RareBelts && item.ClassName == "Belt" && setData.GatheredBelts < maxSetWanted) return true;
+                            if (Settings.RareGloves && item.ClassName == "Gloves" && setData.GatheredGloves < maxSetWanted) return true;
+                            if (Settings.RareBoots && item.ClassName == "Boots" && setData.GatheredBoots < maxSetWanted) return true;
+                            if (Settings.RareHelmets && item.ClassName == "Helmet" && setData.GatheredHelmets < maxSetWanted) return true;
+                            if (Settings.RareArmour && item.ClassName == "Body Armour" && setData.GatheredBodyArmors < maxSetWanted) return true;
+                            if (Settings.RareWeapon && item.IsWeapon && setData.GatheredWeapons < maxSetWanted)
+                                if (item.Width <= Settings.RareWeaponWidth && item.Height <= Settings.RareWeaponHeight) return true;
+
                     }
                     else  
                     {
@@ -394,15 +407,13 @@ namespace PickIt
                         if (Settings.RareHelmets && item.ClassName == "Helmet" && item.ItemLevel >= Settings.RareHelmetsilvl) return true;
                         if (Settings.RareArmour && item.ClassName == "Body Armour" && item.ItemLevel >= Settings.RareArmourilvl) return true;
 
-                        if (Settings.RareWeapon && item.IsWeapon && item.ItemLevel >= Settings.RareWeaponilvl &&
-                            item.Width * item.Height <= Settings.ItemCells) return true;
-
-                        if (Settings.RareWeapon && item.IsWeapon && item.ItemLevel >= Settings.RareWeaponilvl &&
-                            item.Width <= Settings.RareWeaponWidth && item.Height <= Settings.RareWeaponHeight) return true;
+                        if (Settings.RareWeapon && item.IsWeapon && item.ItemLevel >= Settings.RareWeaponilvl)
+                            if (item.Width <= Settings.RareWeaponWidth && item.Height <= Settings.RareWeaponHeight) return true;
                     }
 
-                    if (Settings.RareShield && item.ClassName == "Shield" && item.ItemLevel >= Settings.RareShieldilvl &&
-                        item.Width * item.Height <= Settings.ItemCells) return true;
+                    if (Settings.RareShield && item.ClassName == "Shield" && item.ItemLevel >= Settings.RareShieldilvl)
+                        if (item.Width <= Settings.RareShieldWidth && item.Height <= Settings.RareShieldHeight)
+                            return true;
 
                     if (Settings.RareJewels && (item.ClassName == "Jewel" || item.ClassName == "AbyssJewel")) return true;
                 }

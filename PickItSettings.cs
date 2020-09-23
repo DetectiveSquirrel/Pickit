@@ -56,13 +56,15 @@ namespace PickIt
             RareHelmetsilvl = new RangeNode<int>(1, 0, 100);
             RareWeapon = new ToggleNode(false);
             RareWeaponWidth = new RangeNode<int>(2, 1, 2);
-            RareWeaponHeight = new RangeNode<int>(3, 1, 4);
-            ItemCells = new RangeNode<int>(4, 1, 8);
+            RareWeaponHeight = new RangeNode<int>(4, 1, 4);
             RareWeaponilvl = new RangeNode<int>(1, 0, 100);
             RareArmour = new ToggleNode(false);
             RareArmourilvl = new RangeNode<int>(1, 0, 100);
             RareShield = new ToggleNode(false);
             RareShieldilvl = new RangeNode<int>(1, 0, 100);
+            RareShieldWidth = new RangeNode<int>(2, 1, 2);
+            RareShieldHeight = new RangeNode<int>(4, 1, 4);
+            FullRareSetManagerOverrideAllowIdentifiedItems = new ToggleNode(false);
             PickUpEverything = new ToggleNode(false);
             NormalRuleFile = string.Empty;
             MagicRuleFile = string.Empty;
@@ -74,7 +76,7 @@ namespace PickIt
             MouseSpeed = new RangeNode<float>(1, 0, 30);
         }
 
-        public ToggleNode Enable { get; set; }
+        public ToggleNode Enable { get; set; }   
         public HotkeyNode PickUpKey { get; set; }
         public RangeNode<int> PickupRange { get; set; }
         public RangeNode<int> ChestRange { get; set; }
@@ -105,11 +107,13 @@ namespace PickIt
         public RangeNode<int> RareArmourilvl { get; set; }
         public ToggleNode RareShield { get; set; }
         public RangeNode<int> RareShieldilvl { get; set; }
+        public RangeNode<int> RareShieldWidth { get; set; }
+        public RangeNode<int> RareShieldHeight { get; set; }
         public ToggleNode RareWeapon { get; set; }
         public RangeNode<int> RareWeaponWidth { get; set; }
         public RangeNode<int> RareWeaponHeight { get; set; }
-        public RangeNode<int> ItemCells { get; set; }
         public RangeNode<int> RareWeaponilvl { get; set; }
+        public ToggleNode FullRareSetManagerOverrideAllowIdentifiedItems { get; set; }
         public EmptyNode LinkSocketRgbEmptyNode { get; set; }
         public ToggleNode Sockets { get; set; }
         public RangeNode<int> TotalSockets { get; set; }
