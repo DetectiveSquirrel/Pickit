@@ -145,5 +145,7 @@ namespace PickIt
         public ToggleNode UseWeight { get; set; } = new ToggleNode(false);
         public ToggleNode LazyLooting { get; set; } = new ToggleNode(true);
         public HotkeyNode LazyLootingPauseKey { get; set; } = new HotkeyNode(Keys.Space);
+
+        public ToggleNode FullRareSetManagerOverride { get; set; } = new ToggleNode(false); 
     }
 }

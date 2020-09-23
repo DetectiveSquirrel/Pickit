@@ -14,8 +14,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 using Input = ExileCore.Input;
 
 namespace PickIt
@@ -54,20 +54,19 @@ namespace PickIt
         private WaitTime waitPlayerMove = new WaitTime(10);
         private List<string> _customItems = new List<string>();
 
+
+        public FRSetManagerPublishInformation FullRareSetManagerData = new FRSetManagerPublishInformation();
+
         public PickIt()
         {
             Name = "Pickit";
         }
 
-        //https://stackoverflow.com/questions/826777/how-to-have-an-auto-incrementing-version-number-visual-studio
-        public Version Version { get; } = Assembly.GetExecutingAssembly().GetName().Version;
         public string PluginVersion { get; set; }
         private List<string> PickitFiles { get; set; }
 
         public override bool Initialise()
         {
-            buildDate = new DateTime(2000, 1, 1).AddDays(Version.Build).AddSeconds(Version.Revision * 2);
-            PluginVersion = $"{Version}";
             pickItCoroutine = new Coroutine(MainWorkCoroutine(), this, "Pick It");
             Core.ParallelRunner.Run(pickItCoroutine);
             pickItCoroutine.Pause();
@@ -106,8 +105,6 @@ namespace PickIt
 
         public override void DrawSettings()
         {
-            ImGui.BulletText($"v{PluginVersion}");
-            ImGui.BulletText($"Last Updated: {buildDate}");
             Settings.PickUpKey = ImGuiExtension.HotkeySelector("Pickup Key: " + Settings.PickUpKey.Value.ToString(), Settings.PickUpKey);
             Settings.LeftClickToggleNode.Value = ImGuiExtension.Checkbox("Mouse Button: " + (Settings.LeftClickToggleNode ? "Left" : "Right"), Settings.LeftClickToggleNode);
             Settings.LeftClickToggleNode.Value = ImGuiExtension.Checkbox("Return Mouse To Position Before Click", Settings.ReturnMouseToBeforeClickPosition);
@@ -232,7 +229,13 @@ namespace PickIt
                     Settings.RareWeaponWidth.Value = ImGuiExtension.IntSlider("Maximum Width##RareWeaponWidth", Settings.RareWeaponWidth);
                     Settings.RareWeaponHeight.Value = ImGuiExtension.IntSlider("Maximum Height##RareWeaponHeight", Settings.RareWeaponHeight);
                     Settings.ItemCells.Value = ImGuiExtension.IntSlider("Maximum Cells##RareWeaponCell", Settings.ItemCells);
+                    if (ImGui.TreeNode("Full Rare Set Manager Integration##FRSMI"))
+                    {
+                        Settings.FullRareSetManagerOverride.Value = ImGuiExtension.Checkbox("Override Rare Pickup with Full Rare Set Managers' needed pieces", Settings.FullRareSetManagerOverride);
+                        ImGui.TreePop();
+                    }
                     ImGui.TreePop();
+
                 }
 
                 Settings.HeistItems.Value = ImGuiExtension.Checkbox("Heist Items", Settings.HeistItems);
@@ -367,23 +370,41 @@ namespace PickIt
 
                 if (Settings.Rares && item.Rarity == ItemRarity.Rare)
                 {
-                    if (Settings.RareJewels && (item.ClassName == "Jewel" || item.ClassName == "AbyssJewel")) return true;
-                    if (Settings.RareRings && item.ClassName == "Ring" && item.ItemLevel >= Settings.RareRingsilvl) return true;
-                    if (Settings.RareAmulets && item.ClassName == "Amulet" && item.ItemLevel >= Settings.RareAmuletsilvl) return true;
-                    if (Settings.RareBelts && item.ClassName == "Belt" && item.ItemLevel >= Settings.RareBeltsilvl) return true;
-                    if (Settings.RareGloves && item.ClassName == "Gloves" && item.ItemLevel >= Settings.RareGlovesilvl) return true;
-                    if (Settings.RareBoots && item.ClassName == "Boots" && item.ItemLevel >= Settings.RareBootsilvl) return true;
-                    if (Settings.RareHelmets && item.ClassName == "Helmet" && item.ItemLevel >= Settings.RareHelmetsilvl) return true;
-                    if (Settings.RareArmour && item.ClassName == "Body Armour" && item.ItemLevel >= Settings.RareArmourilvl) return true;
 
-                    if (Settings.RareWeapon && item.IsWeapon && item.ItemLevel >= Settings.RareWeaponilvl &&
-                        item.Width * item.Height <= Settings.ItemCells) return true;
+                    if (Settings.FullRareSetManagerOverride.Value && item.ItemLevel >= 60 && item.ItemLevel <= 74)
+                    {
+                        var setData = FullRareSetManagerData;
+                        var maxSetWanted = setData.WantedSets;
+                        if (Settings.RareRings && item.ClassName == "Ring" && setData.GatheredRings < maxSetWanted) return true;
+                        if (Settings.RareAmulets && item.ClassName == "Amulet" && setData.GatheredAmulets < maxSetWanted) return true;
+                        if (Settings.RareBelts && item.ClassName == "Belt" && setData.GatheredBelts < maxSetWanted) return true;
+                        if (Settings.RareGloves && item.ClassName == "Gloves" && setData.GatheredGloves < maxSetWanted) return true;
+                        if (Settings.RareBoots && item.ClassName == "Boots" && setData.GatheredBoots < maxSetWanted) return true;
+                        if (Settings.RareHelmets && item.ClassName == "Helmet" && setData.GatheredHelmets < maxSetWanted) return true;
+                        if (Settings.RareArmour && item.ClassName == "Body Armour" && setData.GatheredBodyArmors < maxSetWanted) return true;
+                        if (Settings.RareWeapon && item.IsWeapon && setData.GatheredWeapons < maxSetWanted) return true;
+                    }
+                    else  
+                    {
+                        if (Settings.RareRings && item.ClassName == "Ring" && item.ItemLevel >= Settings.RareRingsilvl) return true;
+                        if (Settings.RareAmulets && item.ClassName == "Amulet" && item.ItemLevel >= Settings.RareAmuletsilvl) return true;
+                        if (Settings.RareBelts && item.ClassName == "Belt" && item.ItemLevel >= Settings.RareBeltsilvl) return true;
+                        if (Settings.RareGloves && item.ClassName == "Gloves" && item.ItemLevel >= Settings.RareGlovesilvl) return true;
+                        if (Settings.RareBoots && item.ClassName == "Boots" && item.ItemLevel >= Settings.RareBootsilvl) return true;
+                        if (Settings.RareHelmets && item.ClassName == "Helmet" && item.ItemLevel >= Settings.RareHelmetsilvl) return true;
+                        if (Settings.RareArmour && item.ClassName == "Body Armour" && item.ItemLevel >= Settings.RareArmourilvl) return true;
 
-                    if (Settings.RareWeapon && item.IsWeapon && item.ItemLevel >= Settings.RareWeaponilvl &&
-                        item.Width <= Settings.RareWeaponWidth && item.Height <= Settings.RareWeaponHeight) return true;
+                        if (Settings.RareWeapon && item.IsWeapon && item.ItemLevel >= Settings.RareWeaponilvl &&
+                            item.Width * item.Height <= Settings.ItemCells) return true;
+
+                        if (Settings.RareWeapon && item.IsWeapon && item.ItemLevel >= Settings.RareWeaponilvl &&
+                            item.Width <= Settings.RareWeaponWidth && item.Height <= Settings.RareWeaponHeight) return true;
+                    }
 
                     if (Settings.RareShield && item.ClassName == "Shield" && item.ItemLevel >= Settings.RareShieldilvl &&
                         item.Width * item.Height <= Settings.ItemCells) return true;
+
+                    if (Settings.RareJewels && (item.ClassName == "Jewel" || item.ClassName == "AbyssJewel")) return true;
                 }
 
                 #endregion
@@ -526,6 +547,19 @@ namespace PickIt
             #endregion
 
             return pickItemUp;
+        }
+        public override void ReceiveEvent(string eventId, object args)
+        {
+            if (!Settings.Enable.Value) return;
+
+            if (eventId == "frsm_display_data")
+            {
+
+                var argSerialised = JsonConvert.SerializeObject(args);
+                FullRareSetManagerData = JsonConvert.DeserializeObject<FRSetManagerPublishInformation>(argSerialised);
+
+                LogMessage(args.GetType().ToString());
+            }
         }
 
         private IEnumerator FindItemToPick()
