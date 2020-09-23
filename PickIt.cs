@@ -383,7 +383,7 @@ namespace PickIt
                         var setData = FullRareSetManagerData;
                         var maxSetWanted = setData.WantedSets;
 
-                        if (item.IsIdentified && Settings.FullRareSetManagerOverrideAllowIdentifiedItems.Value)
+                        if (item.IsIdentified && !Settings.FullRareSetManagerOverrideAllowIdentifiedItems.Value)
                             return false;
 
                             if (Settings.RareRings && item.ClassName == "Ring" && setData.GatheredRings < maxSetWanted) return true;
