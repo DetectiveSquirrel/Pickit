@@ -138,6 +138,7 @@ namespace PickIt
                     IsIdentified = mods.Identified;
                     ItemLevel = mods.ItemLevel;
                     IsFractured = mods.HaveFractured;
+                    IsVeiled = mods.ItemMods.Any(m => m.DisplayName.Contains("Veil"));
                 }
 
                 if (GroundItem.HasComponent<Sockets>())
@@ -176,6 +177,7 @@ namespace PickIt
         public bool IsCrusader { get; }
         public bool IsWarlord { get; }
         public bool IsHeist { get; }
+        public bool IsVeiled { get; }
         public bool IsWeapon { get; }
         public int ItemLevel { get; }
         public int LargestLink { get; }

@@ -18,6 +18,8 @@ namespace PickIt
             Links = new ToggleNode(true);
             LargestLink = new RangeNode<int>(6, 1, 6);
             RGB = new ToggleNode(true);
+            RGBWidth = new RangeNode<int>(2, 1, 2);
+            RGBHeight = new RangeNode<int>(4, 1, 4);
             AllDivs = new ToggleNode(true);
             AllCurrency = new ToggleNode(true);
             IgnoreScrollOfWisdom = new ToggleNode(true);
@@ -35,6 +37,7 @@ namespace PickIt
             ShaperItems = new ToggleNode(true);
             ElderItems = new ToggleNode(true);
             HunterItems = new ToggleNode(true);
+            VeiledItems = new ToggleNode(true);
             RedeemerItems = new ToggleNode(true);
             CrusaderItems = new ToggleNode(true);
             WarlordItems = new ToggleNode(true);
@@ -84,6 +87,7 @@ namespace PickIt
         public ToggleNode ShaperItems { get; set; }
         public ToggleNode ElderItems { get; set; }
         public ToggleNode HunterItems { get; set; }
+        public ToggleNode VeiledItems { get; set; }
         public ToggleNode CrusaderItems { get; set; }
         public ToggleNode WarlordItems { get; set; }
         public ToggleNode RedeemerItems { get; set; }
@@ -120,6 +124,8 @@ namespace PickIt
         public ToggleNode Links { get; set; }
         public RangeNode<int> LargestLink { get; set; }
         public ToggleNode RGB { get; set; }
+        public RangeNode<int> RGBWidth { get; set; }
+        public RangeNode<int> RGBHeight { get; set; }
         public EmptyNode AllOverridEmptyNode { get; set; }
         public ToggleNode PickUpEverything { get; set; }
         public ToggleNode AllDivs { get; set; }

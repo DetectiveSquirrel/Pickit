@@ -146,12 +146,18 @@ namespace PickIt
                     Settings.WarlordItems.Value = ImGuiExtension.Checkbox("Warlord Items", Settings.WarlordItems);
                     Settings.RedeemerItems.Value = ImGuiExtension.Checkbox("Redeemer Items", Settings.RedeemerItems);
                     Settings.FracturedItems.Value = ImGuiExtension.Checkbox("Fractured Items", Settings.FracturedItems);
+                    Settings.VeiledItems.Value = ImGuiExtension.Checkbox("Veiled Items", Settings.VeiledItems);
                     ImGui.Spacing();
                     ImGui.TreePop();
                 }
                 if (ImGui.TreeNode("Links/Sockets/RGB"))
                 {
                     Settings.RGB.Value = ImGuiExtension.Checkbox("RGB Items", Settings.RGB);
+                    Settings.RGBWidth.Value = ImGuiExtension.IntSlider("Maximum Width##RGBWidth", Settings.RGBWidth);
+                    Settings.RGBHeight.Value = ImGuiExtension.IntSlider("Maximum Height##RGBHeight", Settings.RGBHeight);
+                    ImGui.Spacing();
+                    ImGui.Spacing();
+                    ImGui.Spacing();
                     Settings.TotalSockets.Value = ImGuiExtension.IntSlider("##Sockets", Settings.TotalSockets);
                     ImGui.SameLine();
                     Settings.Sockets.Value = ImGuiExtension.Checkbox("Sockets", Settings.Sockets);
@@ -371,6 +377,12 @@ namespace PickIt
                         return true;
                 }
 
+                if (Settings.VeiledItems)
+                {
+                    if (item.IsVeiled)
+                        return true;
+                }
+
                 #endregion
 
                 #region Rare Overrides
@@ -424,7 +436,8 @@ namespace PickIt
 
                 if (Settings.Sockets && item.Sockets >= Settings.TotalSockets.Value) return true;
                 if (Settings.Links && item.LargestLink >= Settings.LargestLink) return true;
-                if (Settings.RGB && item.IsRGB) return true;
+                if (Settings.RGB && item.IsRGB && item.Width <= Settings.RGBWidth && item.Height <= Settings.RGBHeight) return true;
+                return true;
 
                 #endregion
 
