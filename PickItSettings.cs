@@ -156,6 +156,19 @@ namespace PickIt
         public ToggleNode LazyLooting { get; set; } = new ToggleNode(false);
         public HotkeyNode LazyLootingPauseKey { get; set; } = new HotkeyNode(Keys.Space);
 
-        public ToggleNode FullRareSetManagerOverride { get; set; } = new ToggleNode(false); 
+        public ToggleNode FullRareSetManagerOverride { get; set; } = new ToggleNode(false);
+        public FRSMOverrides FullRareSetManagerPickupOverrides { get; set; } = new FRSMOverrides();
+
+        public class FRSMOverrides
+        {
+            public int Weapons { get; set; } = -1;
+            public int Helmets { get; set; } = -1;
+            public int BodyArmors { get; set; } = -1;
+            public int Gloves { get; set; } = -1;
+            public int Boots { get; set; } = -1;
+            public int Belts { get; set; } = -1;
+            public int Amulets { get; set; } = -1;
+            public int Rings { get; set; } = -1;
+        }
     }
 }

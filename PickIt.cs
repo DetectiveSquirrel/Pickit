@@ -150,6 +150,7 @@ namespace PickIt
                     ImGui.Spacing();
                     ImGui.TreePop();
                 }
+
                 if (ImGui.TreeNode("Links/Sockets/RGB"))
                 {
                     Settings.RGB.Value = ImGuiExtension.Checkbox("RGB Items", Settings.RGB);
@@ -198,6 +199,7 @@ namespace PickIt
                     ImGui.Separator();
                     ImGui.TreePop();
                 }
+                Settings.HeistItems.Value = ImGuiExtension.Checkbox("Heist Items", Settings.HeistItems);
 
                 Settings.Rares.Value = ImGuiExtension.Checkbox("##Rares", Settings.Rares);
                 ImGui.SameLine();
@@ -244,14 +246,25 @@ namespace PickIt
                     if (ImGui.TreeNode("Full Rare Set Manager Integration##FRSMI"))
                     {
                         Settings.FullRareSetManagerOverride.Value = ImGuiExtension.Checkbox("Override Rare Pickup with Full Rare Set Managers' needed pieces", Settings.FullRareSetManagerOverride);
+
                         Settings.FullRareSetManagerOverrideAllowIdentifiedItems.Value = ImGuiExtension.Checkbox("Pickup Identified items?", Settings.FullRareSetManagerOverrideAllowIdentifiedItems);
+                        ImGui.Spacing();
+                        ImGui.Spacing();
+                        ImGui.BulletText("Set the number you wish to pickup for Full Rare Set Manager overrides\nDefault: -1\n-1 will disable these overrides");
+                        ImGui.Spacing();
+                        Settings.FullRareSetManagerPickupOverrides.Weapons = ImGuiExtension.IntSlider("Max Weapons(s)##FRSMOverrides1", Settings.FullRareSetManagerPickupOverrides.Weapons, -1, 100);
+                        Settings.FullRareSetManagerPickupOverrides.Helmets = ImGuiExtension.IntSlider("Max Helmets##FRSMOverrides2", Settings.FullRareSetManagerPickupOverrides.Helmets, -1, 100);
+                        Settings.FullRareSetManagerPickupOverrides.BodyArmors = ImGuiExtension.IntSlider("Max Body Armors##FRSMOverrides3", Settings.FullRareSetManagerPickupOverrides.BodyArmors, -1, 100);
+                        Settings.FullRareSetManagerPickupOverrides.Gloves = ImGuiExtension.IntSlider("Max Gloves##FRSMOverrides4", Settings.FullRareSetManagerPickupOverrides.Gloves, -1, 100);
+                        Settings.FullRareSetManagerPickupOverrides.Boots = ImGuiExtension.IntSlider("Max Boots##FRSMOverrides5", Settings.FullRareSetManagerPickupOverrides.Boots, -1, 100);
+                        Settings.FullRareSetManagerPickupOverrides.Belts = ImGuiExtension.IntSlider("Max Weapons##FRSMOverrides6", Settings.FullRareSetManagerPickupOverrides.Belts, -1, 100);
+                        Settings.FullRareSetManagerPickupOverrides.Amulets = ImGuiExtension.IntSlider("Max Amulets##FRSMOverrides7", Settings.FullRareSetManagerPickupOverrides.Amulets, -1, 100);
+                        Settings.FullRareSetManagerPickupOverrides.Rings = ImGuiExtension.IntSlider("Max Ring Sets##FRSMOverrides8", Settings.FullRareSetManagerPickupOverrides.Rings, -1, 100);
                         ImGui.TreePop();
                     }
                     ImGui.TreePop();
 
                 }
-
-                Settings.HeistItems.Value = ImGuiExtension.Checkbox("Heist Items", Settings.HeistItems);
             }
         }
 
@@ -394,19 +407,20 @@ namespace PickIt
                     {
                         var setData = FullRareSetManagerData;
                         var maxSetWanted = setData.WantedSets;
+                        var maxPickupOverides = Settings.FullRareSetManagerPickupOverrides;
 
                         if (item.IsIdentified && !Settings.FullRareSetManagerOverrideAllowIdentifiedItems.Value)
                             return false;
 
-                            if (Settings.RareRings && item.ClassName == "Ring" && setData.GatheredRings < maxSetWanted) return true;
-                            if (Settings.RareAmulets && item.ClassName == "Amulet" && setData.GatheredAmulets < maxSetWanted) return true;
-                            if (Settings.RareBelts && item.ClassName == "Belt" && setData.GatheredBelts < maxSetWanted) return true;
-                            if (Settings.RareGloves && item.ClassName == "Gloves" && setData.GatheredGloves < maxSetWanted) return true;
-                            if (Settings.RareBoots && item.ClassName == "Boots" && setData.GatheredBoots < maxSetWanted) return true;
-                            if (Settings.RareHelmets && item.ClassName == "Helmet" && setData.GatheredHelmets < maxSetWanted) return true;
-                            if (Settings.RareArmour && item.ClassName == "Body Armour" && setData.GatheredBodyArmors < maxSetWanted) return true;
-                            if (Settings.RareWeapon && item.IsWeapon && setData.GatheredWeapons < maxSetWanted)
-                                if (item.Width <= Settings.RareWeaponWidth && item.Height <= Settings.RareWeaponHeight) return true;
+                        if (Settings.RareRings && item.ClassName == "Ring" && setData.GatheredRings < (maxPickupOverides.Rings > -1 ? maxPickupOverides.Rings : maxSetWanted)) return true;
+                        if (Settings.RareAmulets && item.ClassName == "Amulet" && setData.GatheredAmulets < (maxPickupOverides.Amulets > -1 ? maxPickupOverides.Amulets : maxSetWanted)) return true;
+                        if (Settings.RareBelts && item.ClassName == "Belt" && setData.GatheredBelts < (maxPickupOverides.Belts > -1 ? maxPickupOverides.Belts : maxSetWanted)) return true;
+                        if (Settings.RareGloves && item.ClassName == "Gloves" && setData.GatheredGloves < (maxPickupOverides.Gloves > -1 ? maxPickupOverides.Gloves : maxSetWanted)) return true;
+                        if (Settings.RareBoots && item.ClassName == "Boots" && setData.GatheredBoots < (maxPickupOverides.Boots > -1 ? maxPickupOverides.Boots : maxSetWanted)) return true;
+                        if (Settings.RareHelmets && item.ClassName == "Helmet" && setData.GatheredHelmets < (maxPickupOverides.Helmets > -1 ? maxPickupOverides.Helmets : maxSetWanted)) return true;
+                        if (Settings.RareArmour && item.ClassName == "Body Armour" && setData.GatheredBodyArmors < (maxPickupOverides.BodyArmors > -1 ? maxPickupOverides.BodyArmors : maxSetWanted)) return true;
+                        if (Settings.RareWeapon && item.IsWeapon && setData.GatheredWeapons < (maxPickupOverides.Weapons > -1 ? maxPickupOverides.Weapons : maxSetWanted))
+                            if (item.Width <= Settings.RareWeaponWidth && item.Height <= Settings.RareWeaponHeight) return true;
 
                     }
                     else  
