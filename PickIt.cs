@@ -257,7 +257,7 @@ namespace PickIt
                         Settings.FullRareSetManagerPickupOverrides.BodyArmors = ImGuiExtension.IntSlider("Max Body Armors##FRSMOverrides3", Settings.FullRareSetManagerPickupOverrides.BodyArmors, -1, 100);
                         Settings.FullRareSetManagerPickupOverrides.Gloves = ImGuiExtension.IntSlider("Max Gloves##FRSMOverrides4", Settings.FullRareSetManagerPickupOverrides.Gloves, -1, 100);
                         Settings.FullRareSetManagerPickupOverrides.Boots = ImGuiExtension.IntSlider("Max Boots##FRSMOverrides5", Settings.FullRareSetManagerPickupOverrides.Boots, -1, 100);
-                        Settings.FullRareSetManagerPickupOverrides.Belts = ImGuiExtension.IntSlider("Max Weapons##FRSMOverrides6", Settings.FullRareSetManagerPickupOverrides.Belts, -1, 100);
+                        Settings.FullRareSetManagerPickupOverrides.Belts = ImGuiExtension.IntSlider("Max Belts##FRSMOverrides6", Settings.FullRareSetManagerPickupOverrides.Belts, -1, 100);
                         Settings.FullRareSetManagerPickupOverrides.Amulets = ImGuiExtension.IntSlider("Max Amulets##FRSMOverrides7", Settings.FullRareSetManagerPickupOverrides.Amulets, -1, 100);
                         Settings.FullRareSetManagerPickupOverrides.Rings = ImGuiExtension.IntSlider("Max Ring Sets##FRSMOverrides8", Settings.FullRareSetManagerPickupOverrides.Rings, -1, 100);
                         ImGui.TreePop();
