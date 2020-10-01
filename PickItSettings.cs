@@ -169,6 +169,9 @@ namespace PickIt
             public int Belts { get; set; } = -1;
             public int Amulets { get; set; } = -1;
             public int Rings { get; set; } = -1;
+
+            public int MinItemLevel { get; set; } = 60;
+            public int MaxItemLevel { get; set; } = 74;
         }
     }
 }
