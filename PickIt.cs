@@ -53,6 +53,7 @@ namespace PickIt
         public string UniqueRuleFile;
         private WaitTime waitPlayerMove = new WaitTime(10);
         private List<string> _customItems = new List<string>();
+        public static PickIt Controller { get; set; }
 
 
         public FRSetManagerPublishInformation FullRareSetManagerData = new FRSetManagerPublishInformation();
@@ -67,6 +68,7 @@ namespace PickIt
 
         public override bool Initialise()
         {
+            Controller = this;
             pickItCoroutine = new Coroutine(MainWorkCoroutine(), this, "Pick It");
             Core.ParallelRunner.Run(pickItCoroutine);
             pickItCoroutine.Pause();
@@ -245,6 +247,8 @@ namespace PickIt
                     Settings.RareWeaponHeight.Value = ImGuiExtension.IntSlider("Maximum Height##RareWeaponHeight", Settings.RareWeaponHeight);
                     if (ImGui.TreeNode("Full Rare Set Manager Integration##FRSMI"))
                     {
+                        ImGui.BulletText("You must use github.com/DetectiveSquirrel/FullRareSetManager in order to utilize this section\nThis will determine what items are still needed to be picked up\nfor the chaos recipe, it uses FRSM's count to check this.'");
+                        ImGui.Spacing();
                         Settings.FullRareSetManagerOverride.Value = ImGuiExtension.Checkbox("Override Rare Pickup with Full Rare Set Managers' needed pieces", Settings.FullRareSetManagerOverride);
 
                         Settings.FullRareSetManagerOverrideAllowIdentifiedItems.Value = ImGuiExtension.Checkbox("Pickup Identified items?", Settings.FullRareSetManagerOverrideAllowIdentifiedItems);
@@ -413,8 +417,8 @@ namespace PickIt
                     var maxPickupOverides = Settings.FullRareSetManagerPickupOverrides;
 
                     if (Settings.FullRareSetManagerOverride.Value &&
-                        maxPickupOverides.MinItemLevel > -1 ? item.ItemLevel >= maxPickupOverides.MinItemLevel : item.ItemLevel >= 60 &&
-                        maxPickupOverides.MaxItemLevel > -1 ? item.ItemLevel <= maxPickupOverides.MaxItemLevel : item.ItemLevel <= 74)
+                        (maxPickupOverides.MinItemLevel > -1 ? item.ItemLevel >= maxPickupOverides.MinItemLevel : item.ItemLevel >= 60) &&
+                        (maxPickupOverides.MaxItemLevel > -1 ? item.ItemLevel <= maxPickupOverides.MaxItemLevel : item.ItemLevel <= 74))
                     { 
 
                         if (item.IsIdentified && !Settings.FullRareSetManagerOverrideAllowIdentifiedItems.Value)
@@ -431,9 +435,9 @@ namespace PickIt
                             if (item.Width <= Settings.RareWeaponWidth && item.Height <= Settings.RareWeaponHeight) return true;
 
                     }
-                    else  
+                    else
                     {
-                        if (Settings.RareRings && item.ClassName == "Ring" && item.ItemLevel >= Settings.RareRingsilvl) return true;
+                        if (Settings.RareRings && item.ClassName == "Ring" && item.ItemLevel >= Settings.RareRingsilvl) return true; 
                         if (Settings.RareAmulets && item.ClassName == "Amulet" && item.ItemLevel >= Settings.RareAmuletsilvl) return true;
                         if (Settings.RareBelts && item.ClassName == "Belt" && item.ItemLevel >= Settings.RareBeltsilvl) return true;
                         if (Settings.RareGloves && item.ClassName == "Gloves" && item.ItemLevel >= Settings.RareGlovesilvl) return true;
@@ -520,6 +524,13 @@ namespace PickIt
         {
             if (!itemEntity.IsValid)
                 return false;
+
+            // TODO: Figure this mind fuck out later
+            //if (!Misc.CanFitInventory(itemEntity))
+            //{
+            //    LogMessage("Cannot Fit Item", 5);
+            //    return false;
+            //}
 
             var pickItemUp = false;
 

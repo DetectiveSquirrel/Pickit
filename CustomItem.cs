@@ -191,6 +191,7 @@ namespace PickIt
         public int Weight { get; set; }
         public bool IsMetaItem { get; set; }
 
+
         public override string ToString()
         {
             return $"{BaseName} ({ClassName}) W: {Weight} Dist: {Distance}";
