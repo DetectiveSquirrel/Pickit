@@ -53,6 +53,7 @@ namespace PickIt
         public string UniqueRuleFile;
         private WaitTime waitPlayerMove = new WaitTime(10);
         private List<string> _customItems = new List<string>();
+        public int[,] inventorySlots { get; set; } = new int[0,0];
         public static PickIt Controller { get; set; }
 
 
@@ -107,6 +108,9 @@ namespace PickIt
 
         public override void DrawSettings()
         {
+            Settings.ShowInventoryView.Value = ImGuiExtension.Checkbox("Show Inventory Slots", Settings.ShowInventoryView.Value);
+            Settings.MoveInventoryView.Value = ImGuiExtension.Checkbox("Moveable Inventory Slots", Settings.MoveInventoryView.Value);
+
             Settings.PickUpKey = ImGuiExtension.HotkeySelector("Pickup Key: " + Settings.PickUpKey.Value.ToString(), Settings.PickUpKey);
             Settings.LeftClickToggleNode.Value = ImGuiExtension.Checkbox("Mouse Button: " + (Settings.LeftClickToggleNode ? "Left" : "Right"), Settings.LeftClickToggleNode);
             Settings.LeftClickToggleNode.Value = ImGuiExtension.Checkbox("Return Mouse To Position Before Click", Settings.ReturnMouseToBeforeClickPosition);
@@ -282,6 +286,8 @@ namespace PickIt
 
         public override Job Tick()
         {
+            inventorySlots = Misc.GetInventoryArray();
+            DrawIgnoredCellsSettings();
             if (Input.GetKeyState(Settings.LazyLootingPauseKey)) DisableLazyLootingTill = DateTime.Now.AddSeconds(2);
             if (Input.GetKeyState(Keys.Escape)) pickItCoroutine.Pause();
 
@@ -320,6 +326,45 @@ namespace PickIt
             //DebugTimer.Reset();
 
             return null;
+        }
+
+
+
+        //TODO: Make function pretty
+
+        private void DrawIgnoredCellsSettings()
+        {
+            if (!Settings.ShowInventoryView.Value)
+                return;
+
+            var _opened = true;
+
+            var MoveableFlag = ImGuiWindowFlags.NoScrollbar |
+                               ImGuiWindowFlags.NoTitleBar |
+                               ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoSavedSettings;
+
+            var NonMoveableFlag = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground |
+                                  ImGuiWindowFlags.NoTitleBar |
+                                  ImGuiWindowFlags.NoInputs |
+                                  ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoSavedSettings;
+
+            if (ImGui.Begin($"{Name}", ref _opened,
+                Settings.MoveInventoryView.Value ? MoveableFlag : NonMoveableFlag))
+            {
+                var _numb = 1;
+                for (var i = 0; i < 5; i++)
+                for (var j = 0; j < 12; j++)
+                {
+                    var toggled = Convert.ToBoolean(inventorySlots[i, j]);
+                    if (ImGui.Checkbox($"##{_numb}IgnoredCells", ref toggled)) inventorySlots[i, j] ^= 1;
+
+                    if ((_numb - 1) % 12 < 11) ImGui.SameLine();
+
+                    _numb += 1;
+                }
+
+                ImGui.End();
+            }
         }
 
         public bool InCustomList(HashSet<string> checkList, CustomItem itemEntity, ItemRarity rarity)
