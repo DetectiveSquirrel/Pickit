@@ -800,7 +800,8 @@ namespace PickIt
                 Mouse.MoveCursorToPosition(vector2);
                 yield return wait2ms;
 
-                if (pickItItem.IsTargeted())
+                if (pickItItem.IsTargeted() &&
+                    GameController?.IngameState?.UIHoverTooltip?.Address == pickItItem?.LabelOnGround?.Label?.Address)
                     yield return Mouse.LeftClick();
 
                 yield return toPick;

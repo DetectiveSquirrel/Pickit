@@ -78,11 +78,7 @@ namespace PickIt
                     return;
                 }
 
-                IsTargeted = () =>
-                {
-                    var isTargeted = itemItemOnGround.GetComponent<Targetable>()?.isTargeted;
-                    return isTargeted != null && (bool)isTargeted;
-                };
+                IsTargeted = () => itemItemOnGround?.GetComponent<Targetable>()?.isTargeted == true;
 
                 var baseItemType = fs.BaseItemTypes.Translate(Path);
 
