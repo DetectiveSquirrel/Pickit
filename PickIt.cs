@@ -17,6 +17,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 using Input = ExileCore.Input;
+using nuVector2 = System.Numerics.Vector2;
 
 namespace PickIt
 {
@@ -54,6 +55,7 @@ namespace PickIt
         private WaitTime waitPlayerMove = new WaitTime(10);
         private List<string> _customItems = new List<string>();
         public int[,] inventorySlots { get; set; } = new int[0,0];
+        public ServerInventory InventoryItems { get; set; }
         public static PickIt Controller { get; set; }
 
 
@@ -286,7 +288,8 @@ namespace PickIt
 
         public override Job Tick()
         {
-            inventorySlots = Misc.GetInventoryArray();
+            InventoryItems = GameController.Game.IngameState.ServerData.PlayerInventories[0].Inventory;
+            inventorySlots = Misc.GetInventoryArray(InventoryItems);
             DrawIgnoredCellsSettings();
             if (Input.GetKeyState(Settings.LazyLootingPauseKey)) DisableLazyLootingTill = DateTime.Now.AddSeconds(2);
             if (Input.GetKeyState(Keys.Escape)) pickItCoroutine.Pause();
@@ -348,6 +351,8 @@ namespace PickIt
                                   ImGuiWindowFlags.NoInputs |
                                   ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoSavedSettings;
 
+            ImGui.SetNextWindowPos(Settings.InventorySlotsVector2, ImGuiCond.Once, nuVector2.Zero);
+
             if (ImGui.Begin($"{Name}", ref _opened,
                 Settings.MoveInventoryView.Value ? MoveableFlag : NonMoveableFlag))
             {
@@ -363,6 +368,7 @@ namespace PickIt
                     _numb += 1;
                 }
 
+                Settings.InventorySlotsVector2 = ImGui.GetWindowPos();
                 ImGui.End();
             }
         }
@@ -800,8 +806,7 @@ namespace PickIt
                 Mouse.MoveCursorToPosition(vector2);
                 yield return wait2ms;
 
-                if (pickItItem.IsTargeted() &&
-                    GameController?.IngameState?.UIHoverTooltip?.Address == pickItItem?.LabelOnGround?.Label?.Address)
+                if (pickItItem.IsTargeted())
                     yield return Mouse.LeftClick();
 
                 yield return toPick;

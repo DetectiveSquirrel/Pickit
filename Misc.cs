@@ -15,17 +15,6 @@ namespace PickIt
 {
     public class Misc
     {
-        public static float EntityDistance(Entity entity, Entity player)
-        {
-            var component = entity?.GetComponent<Render>();
-
-            if (component == null)
-                return 9999999f;
-
-            var objectPosition = component.Pos;
-
-            return Vector3.Distance(objectPosition, player.GetComponent<Render>().Pos);
-        }
 
         public static bool CanFitInventory(CustomItem groundItem)
         {
@@ -38,22 +27,25 @@ namespace PickIt
         public static Vector2 FindSpotInventory(CustomItem item)
         {
             var location = new Vector2(-1, -1);
-            var inventory = GetInventoryArray();
+            var InventorySlots = PickIt.Controller.inventorySlots;
+            var inventoryItems = PickIt.Controller.InventoryItems.InventorySlotItems;
             var width = 12;
             var height = 5;
 
-            if (inventory == null)
+            if (InventorySlots == null)
                 return location;
 
             for (var yCol = 0; yCol < height - (item.Height - 1); yCol++)
             for (var xRow = 0; xRow < width - (item.Width - 1); xRow++)
             {
                 var success = 0;
-                if (inventory[yCol, xRow] > 0) continue;
 
                 for (var xWidth = 0; xWidth < item.Width; xWidth++)
                 for (var yHeight = 0; yHeight < item.Height; yHeight++)
-                    if (inventory[yCol + yHeight, xRow + xWidth] == 0)
+                    if (InventorySlots[yCol + yHeight, xRow + xWidth] == 0)
+                        success++;
+                    else if (inventoryItems.Any(x =>
+                        x.PosX == xRow && x.PosY == yCol && CanItemBeStacked(item, x) == StackableItem.Can))
                         success++;
 
                 if (success >= item.Height * item.Width) return new Vector2(xRow, yCol);
@@ -62,7 +54,33 @@ namespace PickIt
             return location;
         }
 
-        public static int[,] GetInventoryArray()
+        public static StackableItem CanItemBeStacked(CustomItem item, ServerInventory.InventSlotItem inventoryItem)
+        {
+            // return false if not the same item
+            if (item.GroundItem.Path != inventoryItem.Item.Path)
+                return StackableItem.Cannot;
+
+            // return false if the items dont have the Stack component
+            // probably only need to do it on one item but for smoll brain reasons...here we go
+            if (!item.GroundItem.HasComponent<Stack>() || !inventoryItem.Item.HasComponent<Stack>())
+                return StackableItem.Cannot;
+
+            var itemStackComp = item.GroundItem.GetComponent<Stack>();
+            var inventoryItemStackComp = inventoryItem.Item.GetComponent<Stack>();
+
+            if (inventoryItemStackComp.Size == inventoryItemStackComp.Info.MaxStackSize)
+                return StackableItem.Cannot;
+
+            return StackableItem.Can;
+        }
+
+        public enum StackableItem
+        {
+            Cannot,
+            Can
+        }
+
+        public static int[,] GetInventoryArray(ServerInventory containerItems)
         {
             var inventoryCells = new[,]
             {
@@ -75,8 +93,7 @@ namespace PickIt
 
             try
             {
-                var inventory = PickIt.Controller.GameController.Game.IngameState.ServerData.PlayerInventories[0].Inventory;
-                foreach (var item in inventory.InventorySlotItems)
+                foreach (var item in containerItems.InventorySlotItems)
                 {
                     var itemSizeX = item.SizeX;
                     var itemSizeY = item.SizeY;

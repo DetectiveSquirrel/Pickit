@@ -1,3 +1,4 @@
+using System.Numerics;
 using System.Windows.Forms;
 using ExileCore.Shared.Interfaces;
 using ExileCore.Shared.Nodes;
@@ -151,6 +152,7 @@ namespace PickIt
         public string WeightRuleFile { get; set; }
         public ToggleNode MoveInventoryView { get; set; } = new ToggleNode(false);
         public ToggleNode ShowInventoryView { get; set; } = new ToggleNode(true);
+        public Vector2 InventorySlotsVector2 { get; set; } = new Vector2(0,0);
         public RangeNode<float> MouseSpeed { get; set; }
         public ToggleNode ReturnMouseToBeforeClickPosition { get; set; } = new ToggleNode(true);
         public RangeNode<int> TimeBeforeNewClick { get; set; } = new RangeNode<int>(500, 0, 1500);
