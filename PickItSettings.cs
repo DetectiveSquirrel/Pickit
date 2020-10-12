@@ -75,6 +75,7 @@ namespace PickIt
             RareRuleFile = string.Empty;
             UniqueRuleFile = string.Empty;
             WeightRuleFile = string.Empty;
+            IgnoreRuleFile = string.Empty;
             LeftClickToggleNode = new ToggleNode(true);
             OverrideItemPickup = new ToggleNode(false);
             MouseSpeed = new RangeNode<float>(1, 0, 30);
@@ -150,6 +151,7 @@ namespace PickIt
         public string RareRuleFile { get; set; }
         public string UniqueRuleFile { get; set; }
         public string WeightRuleFile { get; set; }
+        public string IgnoreRuleFile { get; set; }
         public ToggleNode MoveInventoryView { get; set; } = new ToggleNode(false);
         public ToggleNode ShowInventoryView { get; set; } = new ToggleNode(true);
         public Vector2 InventorySlotsVector2 { get; set; } = new Vector2(0,0);

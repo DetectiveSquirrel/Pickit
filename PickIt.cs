@@ -37,6 +37,7 @@ namespace PickIt
         private HashSet<string> _normalRules;
         private HashSet<string> _rareRules;
         private HashSet<string> _uniqueRules;
+        private HashSet<string> _ignoreRules;
         private Dictionary<string, int> _weightsRules = new Dictionary<string, int>();
         private WaitTime _workCoroutine;
         public DateTime buildDate;
@@ -141,6 +142,8 @@ namespace PickIt
                 if (tempRef) _uniqueRules = LoadPickit(Settings.UniqueRuleFile);
                 Settings.WeightRuleFile = ImGuiExtension.ComboBox("Weight Rules", Settings.WeightRuleFile, PickitFiles, out tempRef);
                 if (tempRef) _weightsRules = LoadWeights(Settings.WeightRuleFile);
+                Settings.IgnoreRuleFile = ImGuiExtension.ComboBox("Ignore Rules", Settings.IgnoreRuleFile, PickitFiles, out tempRef);
+                if (tempRef) _ignoreRules = LoadPickit(Settings.IgnoreRuleFile);
             }
 
             if (ImGui.CollapsingHeader("Item Logic", ImGuiTreeNodeFlags.Framed | ImGuiTreeNodeFlags.DefaultOpen))
@@ -375,9 +378,9 @@ namespace PickIt
 
         public bool InCustomList(HashSet<string> checkList, CustomItem itemEntity, ItemRarity rarity)
         {
-            if (checkList.Contains(itemEntity.BaseName) && itemEntity.Rarity == rarity)
+            if (checkList.Contains(itemEntity.BaseName) && !_ignoreRules.Contains(itemEntity.BaseName) && itemEntity.Rarity == rarity)
                 return true;
-            if (checkList.Contains(itemEntity.ClassName) && itemEntity.Rarity == rarity)
+            if (checkList.Contains(itemEntity.ClassName) && !_ignoreRules.Contains(itemEntity.ClassName) && itemEntity.Rarity == rarity)
                 return true;
             return false;
         }
@@ -386,6 +389,9 @@ namespace PickIt
         {
             try
             {
+                if (_ignoreRules.Contains(item.BaseName) || _ignoreRules.Contains(item.ClassName))
+                    return false;
+
                 #region Currency
 
                 if (Settings.AllCurrency && item.ClassName.EndsWith("Currency"))
@@ -849,6 +855,7 @@ namespace PickIt
             _rareRules = LoadPickit(Settings.RareRuleFile);
             _uniqueRules = LoadPickit(Settings.UniqueRuleFile);
             _weightsRules = LoadWeights(Settings.WeightRuleFile);
+            _ignoreRules = LoadPickit(Settings.IgnoreRuleFile);
         }
 
         public HashSet<string> LoadPickit(string fileName)
