@@ -570,13 +570,6 @@ namespace PickIt
             if (!itemEntity.IsValid)
                 return false;
 
-            // TODO: Figure this mind fuck out later
-            //if (!Misc.CanFitInventory(itemEntity))
-            //{
-            //    LogMessage("Cannot Fit Item", 5);
-            //    return false;
-            //}
-
             var pickItemUp = false;
 
 
@@ -697,7 +690,10 @@ namespace PickIt
             GameController.Debug["PickIt"] = currentLabels;
             var rectangleOfGameWindow = GameController.Window.GetWindowRectangleTimeCache;
             rectangleOfGameWindow.Inflate(-36, -36);
-            var pickUpThisItem = currentLabels.FirstOrDefault(x => DoWePickThis(x) && x.Distance < Settings.PickupRange && x.GroundItem != null && rectangleOfGameWindow.Intersects(new RectangleF(x.LabelOnGround.Label.GetClientRectCache.Center.X, x.LabelOnGround.Label.GetClientRectCache.Center.Y, 3, 3)));
+            var pickUpThisItem = currentLabels.FirstOrDefault(x =>
+                DoWePickThis(x) && x.Distance < Settings.PickupRange && x.GroundItem != null &&
+                rectangleOfGameWindow.Intersects(new RectangleF(x.LabelOnGround.Label.GetClientRectCache.Center.X,
+                    x.LabelOnGround.Label.GetClientRectCache.Center.Y, 3, 3)) && Misc.CanFitInventory(x));
             
             if (Input.GetKeyState(Settings.PickUpKey.Value) ||
                 CanLazyLoot() && ShouldLazyLoot(pickUpThisItem))

@@ -41,39 +41,24 @@ namespace PickIt
             var inventory = GetInventoryArray();
             var width = 12;
             var height = 5;
+
             if (inventory == null)
                 return location;
 
-            PickIt.Controller.LogMessage($@"item.Width: {item.Width}", 5);
-            PickIt.Controller.LogMessage($@"item.Height: {item.Height}", 5);
-
-            for (var y = 0; y < height - item.Width; y++)
+            for (var yCol = 0; yCol < height - (item.Height - 1); yCol++)
+            for (var xRow = 0; xRow < width - (item.Width - 1); xRow++)
             {
-                ItemDidntFitCellLoop:
-                for (var x = 0; x < width - item.Height; x++)
-                {
-                    PickIt.Controller.LogMessage($@"inventory[Y{y}, X{x}]: {inventory[y, x]}", 5);
-                    //Check if there is something in this spot.
-                    if (inventory[y, x] != 0) continue;
+                var success = 0;
+                if (inventory[yCol, xRow] > 0) continue;
 
-                    for (var y2 = 0; y2 < item.Height; y++)
-                    {
-                        for (var x2 = 0; x2 < item.Width; x++)
-                        {
-                            PickIt.Controller.LogMessage($@"inventory[{y} + {y2}, {x} + {x2}]: {inventory[y + y2, x + x2]}", 5);
-                            if (inventory[y + y2, x + x2] != 0)
-                            {
-                                PickIt.Controller.LogMessage(@"ItemDidntFitCellLoop Fail", 5);
-                                goto ItemDidntFitCellLoop;
-                            }
-                        }
-                    }
+                for (var xWidth = 0; xWidth < item.Width; xWidth++)
+                for (var yHeight = 0; yHeight < item.Height; yHeight++)
+                    if (inventory[yCol + yHeight, xRow + xWidth] == 0)
+                        success++;
 
-                    PickIt.Controller.LogMessage(@"Item Spot Check Pass", 5);
-                    location = new Vector2(x, y);
-                    return location;
-                }
+                if (success >= item.Height * item.Width) return new Vector2(xRow, yCol);
             }
+
             return location;
         }
 
