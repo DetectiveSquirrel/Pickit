@@ -325,7 +325,7 @@ namespace PickIt
             if (DebugTimer.ElapsedMilliseconds > 300)
             {
                 FullWork = true;
-                //LogMessage("Error pick it stop after time limit 300 ms", 1);
+                LogMessage("Error pick it stop after time limit 300 ms", 1);
                 DebugTimer.Reset();
             }
             //Graphics.DrawText($@"PICKIT :: Debug Tick Timer ({DebugTimer.ElapsedMilliseconds}ms)", new Vector2(100, 100), FontAlign.Left);
@@ -678,7 +678,7 @@ namespace PickIt
 
             if (Settings.UseWeight)
             {
-                currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabels
+                currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabelsVisible
                     .Where(x => x.Address != 0 &&
                                 x.ItemOnGround?.Path != null &&
                                 x.IsVisible && x.Label.GetClientRectCache.Center.PointInRectangle(rect) &&
@@ -689,7 +689,8 @@ namespace PickIt
             }
             else
             {
-                currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabels
+                //Linq query probably not performant enough for delirium amount of loots
+                currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabelsVisible
                     .Where(x => x.Address != 0 &&
                                 x.ItemOnGround?.Path != null &&
                                 x.IsVisible && x.Label.GetClientRectCache.Center.PointInRectangle(rect) &&
@@ -821,7 +822,7 @@ namespace PickIt
 
             tryCount = 0;
 
-            while (GameController.Game.IngameState.IngameUi.ItemsOnGroundLabels.FirstOrDefault(
+            while (GameController.Game.IngameState.IngameUi.ItemsOnGroundLabelsVisible.FirstOrDefault(
                        x => x.Address == pickItItem.LabelOnGround.Address) != null && tryCount < 6)
             {
                 tryCount++;
