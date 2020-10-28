@@ -354,7 +354,7 @@ namespace PickIt
                                   ImGuiWindowFlags.NoInputs |
                                   ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoSavedSettings;
 
-            ImGui.SetNextWindowPos(Settings.InventorySlotsVector2, ImGuiCond.Once, nuVector2.Zero);
+            ImGui.SetNextWindowPos(Settings.InventorySlotsVector2, ImGuiCond.Always, nuVector2.Zero);
 
             if (ImGui.Begin($"{Name}", ref _opened,
                 Settings.MoveInventoryView.Value ? MoveableFlag : NonMoveableFlag))
@@ -371,7 +371,9 @@ namespace PickIt
                     _numb += 1;
                 }
 
-                Settings.InventorySlotsVector2 = ImGui.GetWindowPos();
+                if (Settings.MoveInventoryView.Value)
+                    Settings.InventorySlotsVector2 = ImGui.GetWindowPos();
+
                 ImGui.End();
             }
         }
