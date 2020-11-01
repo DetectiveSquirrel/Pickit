@@ -43,7 +43,6 @@ namespace PickIt
         public DateTime buildDate;
         private uint coroutineCounter;
         private Vector2 cursorBeforePickIt;
-        private bool CustomRulesExists = true;
         private bool FullWork = true;
         private Element LastLabelClick;
         public string MagicRuleFile;
@@ -292,7 +291,7 @@ namespace PickIt
         public override Job Tick()
         {
             InventoryItems = GameController.Game.IngameState.ServerData.PlayerInventories[0].Inventory;
-            inventorySlots = Misc.GetInventoryArray(InventoryItems);
+            inventorySlots = Misc.GetContainer2DArray(InventoryItems);
             DrawIgnoredCellsSettings();
             if (Input.GetKeyState(Settings.LazyLootingPauseKey)) DisableLazyLootingTill = DateTime.Now.AddSeconds(2);
             if (Input.GetKeyState(Keys.Escape)) pickItCoroutine.Pause();
@@ -325,7 +324,7 @@ namespace PickIt
             if (DebugTimer.ElapsedMilliseconds > 300)
             {
                 FullWork = true;
-                LogMessage("Error pick it stop after time limit 300 ms", 1);
+                //LogMessage("Error pick it stop after time limit 300 ms", 1);
                 DebugTimer.Reset();
             }
             //Graphics.DrawText($@"PICKIT :: Debug Tick Timer ({DebugTimer.ElapsedMilliseconds}ms)", new Vector2(100, 100), FontAlign.Left);
@@ -598,8 +597,6 @@ namespace PickIt
 
             #region Rarity Rule Switch
 
-            if (CustomRulesExists)
-            {
                 switch (itemEntity.Rarity)
                 {
                     case ItemRarity.Normal:
@@ -635,7 +632,6 @@ namespace PickIt
 
                         break;
                 }
-            }
 
             #endregion
 
@@ -691,7 +687,6 @@ namespace PickIt
             }
             else
             {
-                //Linq query probably not performant enough for delirium amount of loots
                 currentLabels = GameController.Game.IngameState.IngameUi.ItemsOnGroundLabelsVisible
                     .Where(x => x.Address != 0 &&
                                 x.ItemOnGround?.Path != null &&
@@ -846,7 +841,6 @@ namespace PickIt
             if (!Directory.Exists(PickitConfigFileDirectory))
             {
                 Directory.CreateDirectory(PickitConfigFileDirectory);
-                CustomRulesExists = false;
                 return;
             }
 
@@ -867,7 +861,6 @@ namespace PickIt
 
             if (fileName == string.Empty)
             {
-                CustomRulesExists = false;
                 return hashSet;
             }
 
@@ -875,7 +868,6 @@ namespace PickIt
 
             if (!File.Exists(pickitFile))
             {
-                CustomRulesExists = false;
                 return hashSet;
             }
 

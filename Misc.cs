@@ -80,16 +80,9 @@ namespace PickIt
             Can
         }
 
-        public static int[,] GetInventoryArray(ServerInventory containerItems)
+        public static int[,] GetContainer2DArray(ServerInventory containerItems)
         {
-            var inventoryCells = new[,]
-            {
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-            };
+            var containerCells = new int[containerItems.Rows, containerItems.Columns];
 
             try
             {
@@ -97,19 +90,14 @@ namespace PickIt
                 {
                     var itemSizeX = item.SizeX;
                     var itemSizeY = item.SizeY;
-                    var inventPosX = item.PosX; 
+                    var inventPosX = item.PosX;
                     var inventPosY = item.PosY;
                     for (var y = 0; y < itemSizeY; y++)
-                    {
-                        for (var x = 0; x < itemSizeX; x++)
-                        {
-                            //PickIt.Controller.LogMessage(@"inventoryCells[y + inventPosY, x + inventPosX] = 1", 5);
-                            inventoryCells[y + inventPosY, x + inventPosX] = 1;
-                        }
-                    }
+                    for (var x = 0; x < itemSizeX; x++)
+                        containerCells[y + inventPosY, x + inventPosX] = 1;
                 }
 
-                return inventoryCells;
+                return containerCells;
             }
             catch (Exception e)
             {
@@ -117,7 +105,7 @@ namespace PickIt
                 PickIt.Controller.LogMessage(e.ToString(), 5);
             }
 
-            return inventoryCells;
+            return containerCells;
         }
     }
 }
